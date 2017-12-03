@@ -1,0 +1,7 @@
+#Add things to this readme when necessary
+
+#This is where our reaction protocol will run
+
+#The single delegator should be running an instance of the DelegatorClient as well as an instance of the DelegatorServer
+#because a single delegator should always be able to take respond to clients (victims, and other delegators), making the
+#delegator act as a server, as well as being able to pass messages to other delegators (delegator as client).

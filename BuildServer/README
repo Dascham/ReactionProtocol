@@ -1,0 +1,10 @@
+#code in this directory is meant for the VM. Since we have a lot of code, which is supposed to be used in different
+#places, we could make code here, which places all the other files in the correct folders and such.
+
+#Parts of the bootstrapping process:
+#Pick a topology
+#start mininet with that topology
+#have n hosts running a client (victim) python file, where n > 0
+#have m hosts running a delegator, where m > 0
+
+#Initialize an IDS for Client(victims)

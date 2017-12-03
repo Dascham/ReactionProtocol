@@ -1,0 +1,5 @@
+#An example of this kind of client could be an amazon server, making it the potential victim of a DDoS attack.
+#Therefore this kind of client would need code, that can receive messages from an IDS signaling a DDoS attack.
+
+#This client would also need code that sends messages to delegators (although only 1 delegator), making this part of the
+#code that implements a part of the reaction protocol.

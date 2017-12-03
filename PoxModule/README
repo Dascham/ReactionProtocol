@@ -1,0 +1,7 @@
+#we will be running a pox module. This module has the responsibility of making sure that, when a packet comes in
+#for a given switch that the destination address of that packet is matched against destination adresses in the table for
+#that switch. If there is an entry in that table, then the module has to put that packet into the DDoS queue else the
+#default queue
+
+#The module has to be able to receive messages from a delegator. The reason for this is, that all communication between
+#a delegator and a switch is done through the controller(pox module).
