@@ -9,7 +9,7 @@ def SimpleTopology(self):
     net = Mininet(switch = OVSSwitch)
 
     #add remotecontroller, always the same
-    poxcontroller = net.addController(name="pox", controller=RemoteController ipaddress=)
+    poxcontroller = net.addController(name="pox", controller=RemoteController, ipaddress="127.0.0.1")
 
     #add hosts
     h1 = net.addHost("h1")
