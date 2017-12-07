@@ -3,7 +3,7 @@ from mininet.topo import LinearTopo
 from threading import Thread
 import os, time
 
-linear = LinearTopo(k=4)
+linear = LinearTopo(k=2)
 net = Mininet(topo=linear)
 net.start()
 def Server():
