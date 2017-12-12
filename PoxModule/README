@@ -5,3 +5,8 @@
 
 #The module has to be able to receive messages from a delegator. The reason for this is, that all communication between
 #a delegator and a switch is done through the controller(pox module).
+
+
+
+
+http://xuyansen.work/get-flow-table-information-in-pox/
