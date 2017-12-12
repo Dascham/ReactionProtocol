@@ -1,6 +1,7 @@
 #This will run, when FNM detects an attack.
 #We read attack details, and pass it onto the Linker
 #This will run beside FNM, and will point towards the Linker, found within Mininet.
+#Program is run with arg1 = ip, arg2 = port
 import socket
 import sys
 
