@@ -42,7 +42,6 @@ class ThrottleManager(object):
     def AskNeighbouringSwitches(self):
 
 
-
     def __init__(self):
         self.allConnectionObjects = core.connections()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
