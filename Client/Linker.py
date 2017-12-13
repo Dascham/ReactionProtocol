@@ -12,7 +12,7 @@ import time
 #delegator = ('10.0.0.56', 80085) #Placeholder address
 delegator = None
 
-def Handler(clientsock, addr):
+def SendPanic(clientsock, addr):
 	try:
 		data = clientsock.recv(1024)
 		print 'recived: ' + data
@@ -47,6 +47,6 @@ if __name__=='__main__':
 	serversocket.listen(99)
 	while 1:
 	    clientsock, addr = serversocket.accept()
-	    thread.start_new_thread(Handler, (clientsock, addr))
+	    thread.start_new_thread(SendPanic, (clientsock, addr))
 	    time.sleep(120)
 	    thread.start_new_thread(SendStop, (clientsock, addr))

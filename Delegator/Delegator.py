@@ -30,6 +30,10 @@ class Signal():
         self.timestamp = time.now()
         self.TTL = TTL
 
+    def TTLDestroyer(self):
+    	if time.now() > self.timestamp + self.TTL:
+    		
+
 # Host a server, listening for signals on port: 80085
 if __name__=='__main__':
 	host = socket.gethostbyname(socket.gethostname()) #Gets the IP of the machine (not the localhost address)
