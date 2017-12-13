@@ -8,10 +8,10 @@ import sys
 if __name__=='__main__':
 	linkerIP = '192.168.2.4'
 	VictimIP = sys.argv[1]
-	VictimPort = sys.argv[2]
+	#VictimPort = sys.argv[2]
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	sock.connect((linkerIP, 1337))
 	print VictimIP 
-	sock.send(VictimIP + ':' + VictimPort)
+	sock.send(VictimIP)
 	sock.close()
