@@ -1,8 +1,7 @@
 #This will recieve attack detection from the Forwarder, and pass the information on to the local delegator.
 #The Linker will run within Mininet
 
-
-#Server, listening for messages from the forwarder
+#Run as: python Linker.py <delegator-IP> <delegator-Port>
 
 import socket
 import thread
@@ -10,7 +9,8 @@ import sys
 import time
 
 #This should be changed so that it comes in as args
-delegator = ('10.0.0.56', 80085) #Placeholder address
+#delegator = ('10.0.0.56', 80085) #Placeholder address
+delegator = None
 
 def Handler(clientsock, addr):
 	try:
@@ -40,6 +40,7 @@ def SendStop(clientsock, addr):
 
 #Host a server, listening for messages from the forwarder
 if __name__=='__main__':
+	delegator = (sys.argv[1], sys.argv[2])
 	host = socket.gethostbyname(socket.gethostname())
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	serversocket.bind((host, 1337))

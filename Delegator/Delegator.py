@@ -6,7 +6,7 @@ import time
 Pox = ('192.168.2.2', 6634)
 
 # We assume this list of delegators also contains IP to this delegator
-Delegators = ['10.0.0.56', '10.0.0.87']
+Delegators = ['10.0.0.56', '10.0.0.87'] #Placeholders
 switches = []
 
 # To keep track of shit
