@@ -2,96 +2,114 @@ import socket
 import thread
 import sys
 import time
+import threading
 
-Pox = ('192.168.2.2', 6634)
+# Pox module, responsible for listening for and acting upon throttle messages from delegators
+ThrottleManager = ('192.168.2.2', 5001)
 
-# We assume this list of delegators also contains IP to this delegator
+# We assume that these two lists are provided by Mininet or sumthin...
 Delegators = ['10.0.0.56', '10.0.0.87'] #Placeholders
 switches = []
 
 # To keep track of shit
-# If a stop signal is recieved, the coresponding panic entries should be removed 
 PanicSignals = []
 StopSignals = []
 
+def printList(list):
+	if list:
+		for i in list:
+			i.printer()
+	else:
+		print 'list is empty'
+
 class Signal():
-	isPanic = false
-	isStop = false
+	isPanic = False
+	isStop = False
 	incidentNumber = None
 	victimIP = None
 	timestamp = None
-	TTL = None #Expressed in seconds
+	TTL = None # Time to Live - expressed in seconds
 
-	def __init__(self, isPanic, isStop, incidentNumber, victimIP, TTL):
-        self.isPanic = isPanic
-        self.isStop = isStop
-        self.incidentNumber = incidentNumber
-        self.victimIP = victimIP
-        self.timestamp = time.now()
-        self.TTL = TTL
+	# This will start in a thread, when a signal object is created.
+	# If it ever expires (TTL has passed), it removes itself from the list
+	def TTLDestroyer(self):
+		while 1:
+			if time.time() > self.timestamp + self.TTL: #If shit is outdated
+				SendStringToThrottleManager(self.victimIP + '/' + 'stop') #Request a it to sthap
+				print 'signal from: ' + self.victimIP + ' has expired, and has been removed'
+				# Remove self from lists
+				if self in PanicSignals:
+					PanicSignals.remove(self)
+				elif self in StopSignals:
+					StopSignals.remove(self)
+				break
 
-    def TTLDestroyer(self):
-    	if time.now() > self.timestamp + self.TTL:
-    		
+	def printer(self):
+		print '-------Signal Recieved-------' + '\nisPanic: ' + str(self.isPanic) + '\nisStop: ' + str(self.isStop) + '\nincNo: ' + str(self.incidentNumber) + '\nvictimIP: ' + str(self.victimIP) + '\ntimestmp: ' + str(self.timestamp) + '\nTLL: ' + str(self.TTL) + '\n-----------------------------'
 
-# Host a server, listening for signals on port: 80085
-if __name__=='__main__':
-	host = socket.gethostbyname(socket.gethostname()) #Gets the IP of the machine (not the localhost address)
-	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	serversocket.bind((host, 80085))
-	serversocket.listen(99)
-	while 1:
-		# Accept socket
-	    clientsock, addr = serversocket.accept()
-	    # Read signal
-	    data = clientsock.recv(1024)
-	    # Dispatch thread to send signal to delegators
-	    thread.start_new_thread(Propergate, data)
-	    # Handle the panic signal locally
-	    thread.start_new_thread(ProcessSignal, data)
+	def __init__(self, signalType, victimIP, TTL, timestamp):
+		if signalType is 'P':
+			self.isPanic = True
+		elif signalType is 'S':
+			self.isStop = True
 
-#Decide what to do with a signal
+		self.incidentNumber = len(PanicSignals)+1
+		self.victimIP = victimIP
+		self.timestamp = time.time()
+		self.TTL = TTL
+		thread.start_new_thread(self.TTLDestroyer, ())
+		self.printer()
+
+# Decide what to do with a signal
 def ProcessSignal(data):
 	signal = SignalParser(data)
-    if signal.isPanic is true
-    	PanicSignals.append(signal)
+	if signal.isPanic is True:
+		PanicSignals.append(signal)
 
-    	#request some throttle action!
-    	SendStringToPox(signal.victimIP + '/' + 'start')
+		# Request some throttle action!
+		SendStringToThrottleManager(signal.victimIP + '/' + 'start')
 
-    elif signal.isStop is true
-    	StopSignals.append(signal)
-    	for entry in PanicSignals:
-    		if entry.incidentNumber is signal.incidentNumber
-    			PanicSignals.remove(entry)
-    	
-    	#request throttling to stop
-    	SendStringToPox(signal.victimIP + '/' + 'stop')
+	elif signal.isStop is True:
+		StopSignals.append(signal)
+		for entry in PanicSignals:
+			if entry.incidentNumber is signal.incidentNumber:
+				PanicSignals.remove(entry)
+		
+		#request throttling to stop
+		SendStringToThrottleManager(signal.victimIP + '/' + 'stop')
 
 #Takes a signal string, and makes a usable object out of it
 def SignalParser(data):
 	signal = None
-	if data[:1] is 'P':
-		signal = Signal(true, false, len(PanicSignals)+1, data[1:], 300)
-	elif data [:1] is 'S'
-		signal = Signal(false, true, len(StopSignals)+1, data[1:], 0)
+
+	#Extract data to variables
+	signalType, IP, TTL, timestamp = data.split('/')
+	TTL = int(TTL)
+
+	#Make object
+	signal = Signal(signalType, IP, TTL, timestamp)
 	return signal
 
 # Should do same for both panic- and stop-signal
-def Propergate(data):
+def PropergateToOthers(data):
 	thisDelegator = socket.gethostbyname(socket.gethostname())
 	for delegator in Delegators:
-		if delegator not thisDelegator
+		if delegator != thisDelegator:
 			thread.start_new_thread(SendSignalToDelegator, (data, delegator))
 
 def SendSignalToDelegator(data, targetIP):
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	sock.connect((targetIP, 80085))
-	sock.send(data)
-	sock.close()
+	try:
+		print 'Forwarding to delegator at: ' + targetIP + ' ...'
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock.connect((targetIP, 8085))
+		sock.send(data)
+		sock.close()
+	except Exception as e:
+		print 'Delegator at: ' + targetIP + ' could not be reached.'
 
+	
 
-def SendStringToPox(str):
+def SendStringToThrottleManager(str):
 	try:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect(Pox)
@@ -100,4 +118,25 @@ def SendStringToPox(str):
 		print 'Successfully sent!'
 		sock.close()
 	except Exception as e:
-		print e
+		#print e
+		print 'Could not connect to POX!'
+
+# Host a server, listening for signals on port: 8085
+if __name__=='__main__':
+	host = socket.gethostbyname(socket.gethostname()) #Gets the IP of the machine (not the localhost address)
+	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	serversocket.bind((host, 8085))
+	serversocket.listen(99)
+	while 1:
+		# Accept socket
+		clientsock, addr = serversocket.accept()
+		
+		# Read in data 
+		data = clientsock.recv(1024)
+		print 'data recieved: ' + data
+		
+		# Dispatch thread to send signal to delegators
+		thread.start_new_thread(PropergateToOthers, (data,) )
+
+		# Handle the panic signal locally
+		thread.start_new_thread(ProcessSignal, (data,) )

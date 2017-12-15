@@ -15,13 +15,15 @@ delegator = None
 def SendPanic(clientsock, addr):
 	try:
 		data = clientsock.recv(1024)
+		TTL = 10
 		print 'recived: ' + data
 
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect(delegator)
+		data = 'P'+'/'+data+'/'+str(TTL)+'/'+str(time.time())
 		print 'parsing: ' + data + ' on to the delegator...'
-		clientsock.send('P'+data) #Send Panic signal, P for Panic
-		clientsock.close()
+		sock.send(data) #Send Panic signal, P for Panic
+		sock.close()
 		print 'parsed to delegator successfully!'
 	except Exception as e:
 		print e
@@ -40,7 +42,7 @@ def SendStop(clientsock, addr):
 
 #Host a server, listening for messages from the forwarder
 if __name__=='__main__':
-	delegator = (sys.argv[1], sys.argv[2])
+	delegator = (sys.argv[1], int(sys.argv[2]))
 	host = socket.gethostbyname(socket.gethostname())
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	serversocket.bind((host, 1337))
@@ -48,5 +50,5 @@ if __name__=='__main__':
 	while 1:
 	    clientsock, addr = serversocket.accept()
 	    thread.start_new_thread(SendPanic, (clientsock, addr))
-	    time.sleep(120)
-	    thread.start_new_thread(SendStop, (clientsock, addr))
+	    #time.sleep(120)
+	    #thread.start_new_thread(SendStop, (clientsock, addr))

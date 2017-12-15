@@ -6,9 +6,9 @@ import socket
 import sys
 
 if __name__=='__main__':
-	linkerIP = '192.168.2.4'
+	linkerIP = socket.gethostbyname(socket.gethostname())
 	VictimIP = sys.argv[1]
-	#VictimPort = sys.argv[2]
+	#TTL = sys.argv[2]
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	sock.connect((linkerIP, 1337))
