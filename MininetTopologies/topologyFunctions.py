@@ -103,11 +103,14 @@ def ConnectTwoISPs(net, isp_a, isp_b):
 				isp_b.listOfGateways[j].IsConnectedToGateway = True
 				return True
 	return False
-
-net = Mininet(switch=OVSSwitch, autoSetMacs=True)
-net.addController(name="pox", controller=RemoteController, 
+def AddPoxController():
+	net = Mininet(switch=OVSSwitch, autoSetMacs=True)
+	net.addController(name="pox", controller=RemoteController, 
 				ip="127.0.0.1", protocol="tcp", port=6633)
+	return net
 
+'''
+net = AddPoxController()
 ISPs = []
 for i in range(0, 8):
 	isp = ISP(net, randint(4,50), 6, 2)
@@ -116,8 +119,8 @@ for i in range(0, 8):
 for i in range(0, len(ISPs)):
 	if len(ISPs) != i+1:
 		ConnectTwoISPs(net, ISPs[i], ISPs[i+1])
-	#else:
-		#ConnectTwoISPs(net, ISPs[0], ISPs[-1]) #connect last with first -> probably adds cycle to network
+	else:
+		ConnectTwoISPs(net, ISPs[0], ISPs[-1]) #connect last with first -> probably adds cycle to network
 
 #has to build before able to get values
 print("Hostcounter %d. Switchcounter %d" % (hostCounter, switchCounter))
@@ -132,21 +135,3 @@ cli = CLI(net)
 net.start()
 time.sleep(3)
 os.system("sudo mn -c")
-
-
-'''
-def ConnectHostsToSingleSwitch(net, hosts, switch)
-	links = []
-	for host in hosts
-		links = net.addLinks(host, switch)
-
-#how-to-link: always link all hosts with every switch. And every switch should have a maksimum of two connections to other switches
-def SingleISP(net, numberOfHosts=3, numberOfSwitches=1):
-	AddHosts(net, numberOfHosts)
-	AddSwitches(net, numberOfSwitches)
-
-	#connect 
-	for switch in numberOfSwitches:
-		for host in numberOfHosts:
-			net.addLink(switch, host)
-'''
