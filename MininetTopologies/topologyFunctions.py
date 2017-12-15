@@ -34,24 +34,24 @@ class ISP:
 		if self.listOfSwitches and self.listOfGateways:
 			self.ConnectSwitchesAndGateways(self.net, self.listOfSwitches, self.listOfGateways)
 
-	#example 38 hosts, 6 switches
+	#example 5 hosts, 6 switches
 	def ConnectISPDevices(self, net, listOfHosts, listOfSwitches):
-		number = len(listOfHosts)/len(listOfSwitches) #number = 6
-		remainder = len(listOfHosts)%len(listOfSwitches) #remainder = 2
+		number = len(listOfHosts)/len(listOfSwitches) #number = 0
+		remainder = len(listOfHosts)%len(listOfSwitches) #remainder = 5
 		j = 0
-		for i in range(0, len(listOfSwitches)):
-			while j < len(listOfHosts): 
-				net.addLink(listOfSwitches[i], listOfHosts[j])
-				j = j+1
-				if j % number == 0: 
-					break
+		if number != 0:
+			for i in range(0, len(listOfSwitches)):
+				while j < len(listOfHosts): 
+					net.addLink(listOfSwitches[i], listOfHosts[j])
+					j = j+1
+					if j % number == 0: 
+						break
 
 		if remainder != 0: #if number of hosts is uneven with amount of switches
-			print("number is uneven")
 			for i in range(1, remainder+1):
 				net.addLink(listOfHosts[-i], listOfSwitches[-i]) #link last host with last switch
-		else:
-			print("is even")
+		
+
 		#example: list with 2 switches, connect switches
 		if len(listOfSwitches) > 1:
 			for i in range (0, len(listOfSwitches)):
@@ -108,12 +108,21 @@ def AddPoxController():
 	net.addController(name="pox", controller=RemoteController, 
 				ip="127.0.0.1", protocol="tcp", port=6633)
 	return net
+def GetAllSwitches(allISPs):
+	switches = []
+	for ISP in allISPs:
+		switches.extend(ISP.listOfSwitches)
+		for gateway in ISP.listOfGateways:
+			switches.append(gateway.mininetSwitch)
 
-'''
+	return switches
+
+
+
 net = AddPoxController()
 ISPs = []
-for i in range(0, 8):
-	isp = ISP(net, randint(4,50), 6, 2)
+for i in range(0, 1):
+	isp = ISP(net, 2, 1, 0)
 	ISPs.append(isp)
 
 for i in range(0, len(ISPs)):
@@ -126,12 +135,15 @@ for i in range(0, len(ISPs)):
 print("Hostcounter %d. Switchcounter %d" % (hostCounter, switchCounter))
 
 net.build()
-nodes = net.values()
-print(nodes)
+#nodes = net.values()
+#print(nodes)
 net.start()
 
 cli = CLI(net)
 
-net.start()
+switches = GetAllSwitches(ISPs)
+print(switches[0].defaultDpid)
+
+net.stop()
 time.sleep(3)
 os.system("sudo mn -c")

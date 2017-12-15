@@ -38,14 +38,14 @@ class ThrottleManager(object):
 
 
     def sendFlowStatsRequest():
-    for con in core.openflow.connections:   #sends request to all switches in the network
-        con.send(of.ofp_stats_request(body=of.ofp_flow_stats_request()))
+        for con in core.openflow.connections:
+            con.send(of.ofp_stats_request(body=of.ofp_flow_stats_request()))
 
     def HandleFlowStats(event, clientIPAddress):
-    for flows in event.stats:                            #should only be a single flow, with a destination of victimIPAddress, however there could also not be one
-        if flows.match.nw_dst == victimIPAddress:        #if destination of a flow matches the IP address of the current victim
-            port = flows.actions[0].port                 #out_port of packet to destination address of current victim
-            SendFlowMod(self.clientIPAddress, event)
+        for flows in event.stats:                            #should only be a single flow, with a destination of victimIPAddress, however there could also not be one
+            if flows.match.nw_dst == victimIPAddress:        #if destination of a flow matches the IP address of the current victim
+                port = flows.actions[0].port                 #out_port of packet to destination address of current victim
+                SendFlowMod(self.clientIPAddress, event)
 
     def SendFlowMod(clientIPAddress, port, switchConnectionObject, priority=100, expires=600, queue_id=0):
         log.debug("sending throttle message")
