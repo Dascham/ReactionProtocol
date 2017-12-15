@@ -14,6 +14,8 @@ class ThrottleManager(object):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.port = 5001
         self.clientIPAddress = None
+        self.start = False
+        self.stop = False
         log = core.getLogger("Report: ")
 
         #start thread immediatly
@@ -32,7 +34,14 @@ class ThrottleManager(object):
     def HandleDelegatorRequest(self, connectionSocket):
         msg = connectionSocket.recv(1024)
         msg.decode("ascii")
-        self.clientIPAddress = msg
+        # incoming message looks like: <ip> / <request type>
+        self.clientIPAddress, requestType = msg.split('/')
+
+        #Determine if this message is a start- or stop-request
+        if requestType is 'START':
+            self.start = True
+        elif requestType is 'STOP':
+            self.stop = True
 
         sendFlowStatsRequest()  #sends request to all switches
 
