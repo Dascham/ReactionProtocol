@@ -5,75 +5,72 @@ from mininet.node import ( Host, CPULimitedHost, Controller, OVSController,
                            IVSSwitch )
 from mininet.net import Mininet
 from mininet.cli import CLI
+import os, time
+from random import randint
 
 hostCounter = 1
 switchCounter = 1
 
-
-net = Mininet(switch=OVSSwitch, autoSetMacs=True)
-net.addController(name="pox", controller=RemoteController, 
-				ip="127.0.0.1", protocol="tcp", port=6633)
-
-isp_one = ISP(net, 5, 2, 1)
-isp_two = ISP(net, 4, 2, 2)
-
-ConnectTwoISPs(net, isp_one, isp_two)
-
-
-#has to build before able to get values
-net.build()
-nodes = net.values()
-
-print(nodes)
-
-class GatewaySwitch():
+class GatewaySwitch:
 	def __init__(self, mininetSwitch):
 		self.mininetSwitch = mininetSwitch
 		self.IsConnectedToGateway = False
 
-class ISP():
+class ISP:
 	#static variable for unique ID assignment
 	static_id = 0
 
-	def __init__(self, net, numberOfHosts, numberOfSwitches, numberOfGateways)
+	def __init__(self, net, numberOfHosts, numberOfSwitches, numberOfGateways):
 		self.net = net
-		self.listOfHosts = AddHosts(numberOfHosts)
-		self.listOfSwitches = AddSwitches(numberOfSwitches, True)
-		self.listOfGateways = AddSwitches(numberOfGateways, False)
+		self.listOfHosts = self.AddHosts(self.net, numberOfHosts)
+		self.listOfSwitches = self.AddSwitches(self.net, numberOfSwitches, True)
+		self.listOfGateways = self.AddSwitches(self.net, numberOfGateways, False)
 		#self.delegator = delegator
-		self.id = static_id
-		static_id += 1
+		self.id = ISP.static_id
+		ISP.static_id += 1
 
-		if self.listOfHosts and self.listOfSwitches #if both lists are not empty
-			ConnectISPDevices()
-		if self.listOfSwitches and self.listOfGateways
-			ConnectSwitchesAndGateways()
+		if self.listOfHosts and self.listOfSwitches: #if both lists are not empty
+			self.ConnectISPDevices(self.net, self.listOfHosts, self.listOfSwitches)
+		if self.listOfSwitches and self.listOfGateways:
+			self.ConnectSwitchesAndGateways(self.net, self.listOfSwitches, self.listOfGateways)
 
-	#example 5 hosts, 2 switches
-	def ConnectISPDevices():
-		number = self.listOfHosts/listOfSwitches
+	#example 38 hosts, 6 switches
+	def ConnectISPDevices(self, net, listOfHosts, listOfSwitches):
+		number = len(listOfHosts)/len(listOfSwitches) #number = 6
+		remainder = len(listOfHosts)%len(listOfSwitches) #remainder = 2
 		j = 0
-		for i in range(0, len(self.listOfSwitches)):
-			while j < len(self.listOfHosts):
-				self.net.addLink(self.listOfSwitches[i], self.listOfHosts[j])
-				j += 1
-				if j % len(self.listOfSwitches) == 0:
+		for i in range(0, len(listOfSwitches)):
+			while j < len(listOfHosts): 
+				net.addLink(listOfSwitches[i], listOfHosts[j])
+				j = j+1
+				if j % number == 0: 
 					break
 
-		if len(self.listOfHosts)%2 != 0: #if number of hosts is uneven
-			self.net.addLink(self.listOfHosts[-1], self.listOfSwitches[-1]) #link last hosts with last switch
+		if remainder != 0: #if number of hosts is uneven with amount of switches
+			print("number is uneven")
+			for i in range(1, remainder+1):
+				net.addLink(listOfHosts[-i], listOfSwitches[-i]) #link last host with last switch
+		else:
+			print("is even")
+		#example: list with 2 switches, connect switches
+		if len(listOfSwitches) > 1:
+			for i in range (0, len(listOfSwitches)):
+				if len(listOfSwitches) != i+1:
+					net.addLink(listOfSwitches[i], listOfSwitches[i+1])
+				else:
+					break
 
-		#example: list with 2 switches
-		if len(self.listOfSwitches) > 1
-			for i in range (0, len(self.listOfSwitches)-1)
-				self.net.addLink(self.listOfSwitches[i], self.listOfSwitches[i+1])
+	#example: 2 switches and 1 gateway, 1 switch 2 gateways
+	def ConnectSwitchesAndGateways(self, net, listOfSwitches, listOfGateways):
+		if len(listOfSwitches) > len(listOfGateways):
+			for i in range(0, len(listOfGateways)):
+				net.addLink(listOfSwitches[i], listOfGateways[i].mininetSwitch)
+		else:
+			for i in range(0, len(listOfSwitches)):
+				net.addLink(listOfSwitches[i], listOfGateways[i].mininetSwitch)
 
-	#example: 2 switches and 1 gateway
-	def ConnectSwitchesAndGateways():
-		for i in range(0, len(self.listOfSwitches))
-
-
-	def AddHosts(net, numberOfHosts):
+	def AddHosts(self, net, numberOfHosts):
+		global hostCounter
 		hosts = []
 		for i in range(0, numberOfHosts):
 			host = net.addHost("h%d"% (hostCounter))
@@ -81,46 +78,60 @@ class ISP():
 			hosts.append(host)
 		return hosts
 
-	def AddSwitches(net, numberOfSwitches, IsSwitch):
+	def AddSwitches(self, net, numberOfSwitches, IsSwitch):
+		global switchCounter
 		switches = []
 		if IsSwitch:
 			for i in range(0, numberOfSwitches):
-				switch = net.AddSwitch("s%d"% (switchCounter))
+				switch = net.addSwitch("s%d"% (switchCounter))
 				switchCounter += 1
 				switches.append(switch)
 			return switches
-		else #is gateway
+		else: 
 			for i in range(0, numberOfSwitches):
-				switch = GatewaySwitch(net.AddSwitch("s%d"% (switchCounter)))
+				switch = GatewaySwitch(net.addSwitch("s%d"% (switchCounter)))
 				switchCounter += 1
 				switches.append(switch)
 			return switches
 
 def ConnectTwoISPs(net, isp_a, isp_b):
-	for i in range(0, isp_a.listOfGateways):
-		for j in range(0, isp_b.listOfGateways):
-			if isp_a.listOfGateways[i].IsConnectedToGateway == False and isp_b.listOfGateways[j].IsConnectedToGateway == False
+	for i in range(0, len(isp_a.listOfGateways)):
+		for j in range(0, len(isp_b.listOfGateways)):
+			if isp_a.listOfGateways[i].IsConnectedToGateway == False and isp_b.listOfGateways[j].IsConnectedToGateway == False:
 				net.addLink(isp_a.listOfGateways[i].mininetSwitch, isp_b.listOfGateways[j].mininetSwitch)
 				isp_a.listOfGateways[i].IsConnectedToGateway = True
 				isp_b.listOfGateways[j].IsConnectedToGateway = True
 				return True
 	return False
+def AddPoxController():
+	net = Mininet(switch=OVSSwitch, autoSetMacs=True)
+	net.addController(name="pox", controller=RemoteController, 
+				ip="127.0.0.1", protocol="tcp", port=6633)
+	return net
 
 '''
+net = AddPoxController()
+ISPs = []
+for i in range(0, 8):
+	isp = ISP(net, randint(4,50), 6, 2)
+	ISPs.append(isp)
 
-def ConnectHostsToSingleSwitch(net, hosts, switch)
-	links = []
-	for host in hosts
-		links = net.addLinks(host, switch)
+for i in range(0, len(ISPs)):
+	if len(ISPs) != i+1:
+		ConnectTwoISPs(net, ISPs[i], ISPs[i+1])
+	else:
+		ConnectTwoISPs(net, ISPs[0], ISPs[-1]) #connect last with first -> probably adds cycle to network
 
-#how-to-link: always link all hosts with every switch. And every switch should have a maksimum of two connections to other switches
-def SingleISP(net, numberOfHosts=3, numberOfSwitches=1):
-	AddHosts(net, numberOfHosts)
-	AddSwitches(net, numberOfSwitches)
+#has to build before able to get values
+print("Hostcounter %d. Switchcounter %d" % (hostCounter, switchCounter))
 
-	#connect 
-	for switch in numberOfSwitches:
-		for host in numberOfHosts:
-			net.addLink(switch, host)
+net.build()
+nodes = net.values()
+print(nodes)
+net.start()
 
-'''
+cli = CLI(net)
+
+net.start()
+time.sleep(3)
+os.system("sudo mn -c")

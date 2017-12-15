@@ -10,25 +10,23 @@ import os, time
 
 #autoSetMacs=True
 
-#linear = LinearTopo(k=100)
-#topo=linear
-net = Mininet(switch = OVSSwitch, autoSetMacs=True)
+linear = LinearTopo(k=6)
+#
+net = Mininet(topo=linear, switch = OVSSwitch, autoSetMacs=True)
 
 poxcontroller = net.addController(name="pox", 
                 controller=RemoteController, 
                 ip="127.0.0.1", protocol="tcp", 
                 port=6633)
-
+'''
 h1 = net.addHost("h1")
 h2 = net.addHost("h2")
 s1 = net.addSwitch("s1")
 
 net.addLink(h1, s1)
 net.addLink(h2, s1)
-
+'''
 net.start()
-
-print(s1().connectionsTo())
 
 cli = CLI(net)
 
