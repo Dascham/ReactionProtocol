@@ -67,7 +67,7 @@ def ProcessSignal(data):
 		PanicSignals.append(signal)
 
 		# Request some throttle action!
-		SendStringToThrottleManager(signal.victimIP + '/' + 'start')
+		SendStringToThrottleManager(signal.victimIP + '/' + 'START')
 
 	elif signal.isStop is True:
 		StopSignals.append(signal)
@@ -76,7 +76,7 @@ def ProcessSignal(data):
 				PanicSignals.remove(entry)
 		
 		#request throttling to stop
-		SendStringToThrottleManager(signal.victimIP + '/' + 'stop')
+		SendStringToThrottleManager(signal.victimIP + '/' + 'STOP')
 
 #Takes a signal string, and makes a usable object out of it
 def SignalParser(data):
@@ -107,19 +107,17 @@ def SendSignalToDelegator(data, targetIP):
 	except Exception as e:
 		print 'Delegator at: ' + targetIP + ' could not be reached.'
 
-	
-
 def SendStringToThrottleManager(str):
 	try:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect(Pox)
-		print 'Sending: ' + str + ' to POX'
+		print 'Sending: ' + str + ' to ThrottleManager...'
 		sock.send(str)
-		print 'Successfully sent!'
+		print 'Successfully sent: ' + str + ' to ThrottleManager' 
 		sock.close()
 	except Exception as e:
 		#print e
-		print 'Could not connect to POX!'
+		print 'Could not connect to ThrottleManager!'
 
 # Host a server, listening for signals on port: 8085
 if __name__=='__main__':
