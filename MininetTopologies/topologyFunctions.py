@@ -11,9 +11,14 @@ from random import randint
 hostCounter = 1
 switchCounter = 1
 
-class GatewaySwitch:
-	def __init__(self, mininetSwitch):
+class Switch:
+	def __init__(self, mininetSwitch, dpid, switchInterfaces):
 		self.mininetSwitch = mininetSwitch
+		self.dpid = dpid
+		self.switchInterfaces = switchInterfaces
+
+class GatewaySwitch (Switch):
+	def __init__(self, mininetSwitch, dpid, switchInterfaces):
 		self.IsConnectedToGateway = False
 
 class ISP:
@@ -33,6 +38,9 @@ class ISP:
 			self.ConnectISPDevices(self.net, self.listOfHosts, self.listOfSwitches)
 		if self.listOfSwitches and self.listOfGateways:
 			self.ConnectSwitchesAndGateways(self.net, self.listOfSwitches, self.listOfGateways)
+
+	def GetMininetSwitches():
+		
 
 	#example 5 hosts, 6 switches
 	def ConnectISPDevices(self, net, listOfHosts, listOfSwitches):
