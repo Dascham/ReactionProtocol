@@ -118,7 +118,7 @@ def GetAllSwitches(allISPs):
 		for gateway in ISP.listOfGateways:
 			switches.append(gateway.mininetSwitch)
 	return switches
-	
+
 def GetAllHosts(allISPs):
 	hosts = []
 	for ISP in allISPs:
@@ -134,7 +134,7 @@ def InitializeThrottleQueue(switchInterface, minBitsPerSecond=0,
 		.format(switchInterface, minBitsPerSecond, maxBitsPerSecond, queue_id))
 
 
-
+'''
 net = AddPoxController()
 ISPs = []
 for i in range(0, 1):
@@ -168,3 +168,4 @@ cli = CLI(net)
 net.stop()
 time.sleep(3)
 os.system("sudo mn -c")
+'''
