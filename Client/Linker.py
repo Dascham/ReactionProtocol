@@ -1,6 +1,8 @@
 #This will recieve attack detection from the Forwarder, and pass the information on to the local delegator.
 #The Linker will run within Mininet
 
+#this file should probably be called "Client"
+
 #Run as: python Linker.py <delegator-IP> <delegator-Port>
 
 import socket

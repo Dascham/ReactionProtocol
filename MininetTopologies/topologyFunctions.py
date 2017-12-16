@@ -11,14 +11,14 @@ from random import randint
 hostCounter = 1
 switchCounter = 1
 
-class Switch:
-	def __init__(self, mininetSwitch, dpid, switchInterfaces):
-		self.mininetSwitch = mininetSwitch
-		self.dpid = dpid
-		self.switchInterfaces = switchInterfaces
 
-class GatewaySwitch (Switch):
-	def __init__(self, mininetSwitch, dpid, switchInterfaces):
+class Host():
+	def __init__(self, mininetHost)
+		self.HasAssignment = False
+
+class GatewaySwitch ():
+	def __init__(self, mininetSwitch):
+		self.mininetSwitch = mininetSwitch
 		self.IsConnectedToGateway = False
 
 class ISP:
@@ -30,7 +30,7 @@ class ISP:
 		self.listOfHosts = self.AddHosts(self.net, numberOfHosts)
 		self.listOfSwitches = self.AddSwitches(self.net, numberOfSwitches, True)
 		self.listOfGateways = self.AddSwitches(self.net, numberOfGateways, False)
-		#self.delegator = delegator
+		self.HasDelegator = False
 		self.id = ISP.static_id
 		ISP.static_id += 1
 
@@ -39,28 +39,22 @@ class ISP:
 		if self.listOfSwitches and self.listOfGateways:
 			self.ConnectSwitchesAndGateways(self.net, self.listOfSwitches, self.listOfGateways)
 
-	def GetMininetSwitches():
-		
-
-	#example 5 hosts, 6 switches
 	def ConnectISPDevices(self, net, listOfHosts, listOfSwitches):
-		number = len(listOfHosts)/len(listOfSwitches) #number = 0
-		remainder = len(listOfHosts)%len(listOfSwitches) #remainder = 5
+		number = len(listOfHosts)/len(listOfSwitches)
+		remainder = len(listOfHosts)%len(listOfSwitches) 
 		j = 0
 		if number != 0:
 			for i in range(0, len(listOfSwitches)):
 				while j < len(listOfHosts): 
-					net.addLink(listOfSwitches[i], listOfHosts[j])
+					net.addLink(listOfSwitches[i], listOfHosts[j].mininetHost)
 					j = j+1
 					if j % number == 0: 
 						break
 
 		if remainder != 0: #if number of hosts is uneven with amount of switches
 			for i in range(1, remainder+1):
-				net.addLink(listOfHosts[-i], listOfSwitches[-i]) #link last host with last switch
+				net.addLink(listOfHosts.mininetHost[-i], listOfSwitches[-i]) #link last host with last switch
 		
-
-		#example: list with 2 switches, connect switches
 		if len(listOfSwitches) > 1:
 			for i in range (0, len(listOfSwitches)):
 				if len(listOfSwitches) != i+1:
@@ -68,7 +62,6 @@ class ISP:
 				else:
 					break
 
-	#example: 2 switches and 1 gateway, 1 switch 2 gateways
 	def ConnectSwitchesAndGateways(self, net, listOfSwitches, listOfGateways):
 		if len(listOfSwitches) > len(listOfGateways):
 			for i in range(0, len(listOfGateways)):
@@ -81,7 +74,7 @@ class ISP:
 		global hostCounter
 		hosts = []
 		for i in range(0, numberOfHosts):
-			host = net.addHost("h%d"% (hostCounter))
+			host = Host(net.addHost("h%d"% (hostCounter)))
 			hostCounter += 1
 			hosts.append(host)
 		return hosts
@@ -111,19 +104,34 @@ def ConnectTwoISPs(net, isp_a, isp_b):
 				isp_b.listOfGateways[j].IsConnectedToGateway = True
 				return True
 	return False
+
 def AddPoxController():
 	net = Mininet(switch=OVSSwitch, autoSetMacs=True)
 	net.addController(name="pox", controller=RemoteController, 
 				ip="127.0.0.1", protocol="tcp", port=6633)
 	return net
+
 def GetAllSwitches(allISPs):
 	switches = []
 	for ISP in allISPs:
 		switches.extend(ISP.listOfSwitches)
 		for gateway in ISP.listOfGateways:
 			switches.append(gateway.mininetSwitch)
-
 	return switches
+	
+def GetAllHosts(allISPs):
+	hosts = []
+	for ISP in allISPs:
+		hosts.extend(ISP.listOfHosts)
+	return hosts
+
+def InitializeThrottleQueue(switchInterface, minBitsPerSecond=0, 
+	maxBitsPerSecond=1000000, queueSize=1000, queue_id=0):
+
+	os.system("sudo ovs-vsctl -- set Port {0} qos=@newqos -- "
+		"--id=@newqos create QoS type=linux-htb other-config:maxrate={2} queues={3}=@q{3} --"
+		"--id=@q{3} create Queue other-config:min-rate={1} other-config:max-rate={2}"
+		.format(switchInterface, minBitsPerSecond, maxBitsPerSecond, queue_id))
 
 
 
@@ -147,10 +155,15 @@ net.build()
 #print(nodes)
 net.start()
 
+#this works as expected
+switches = GetAllSwitches(ISPs)
+print(switches[0].defaultDpid())
+print(ISPs[0].listOfHosts.mininetHost[0].IP())
+print(switches[0].intfNames()) #for a switch with two interfaces, returns: ["lo", "s1-eth1", "s1-eth2"]
+
+
 cli = CLI(net)
 
-switches = GetAllSwitches(ISPs)
-print(switches[0].defaultDpid)
 
 net.stop()
 time.sleep(3)
