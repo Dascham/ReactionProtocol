@@ -7,8 +7,9 @@ import threading
 # Pox module, responsible for listening for and acting upon throttle messages from delegators
 ThrottleManager = ('192.168.2.2', 5001)
 
-# We assume that these two lists are provided by Mininet or sumthin...
-Delegators = [] #Placeholders
+# Delegators are read in from a file
+Delegators = []
+# Switches are ???
 switches = []
 
 # To keep track of shit
@@ -21,6 +22,7 @@ def getDelegatorListFromFile():
 		file = open("~/Desktop/delegatorIPs", "r")
 		for line in file
 			Delegators.append(line)
+		file.close()
 	except Exception as e:
 		print 'Could not find delegtorsIPs file!'
 
