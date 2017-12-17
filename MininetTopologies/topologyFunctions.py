@@ -13,10 +13,11 @@ switchCounter = 1
 
 
 class Host():
-	def __init__(self, mininetHost)
+	def __init__(self, mininetHost):
+		self.mininetHost = mininetHost
 		self.HasAssignment = False
 
-class GatewaySwitch ():
+class GatewaySwitch():
 	def __init__(self, mininetSwitch):
 		self.mininetSwitch = mininetSwitch
 		self.IsConnectedToGateway = False
@@ -53,7 +54,7 @@ class ISP:
 
 		if remainder != 0: #if number of hosts is uneven with amount of switches
 			for i in range(1, remainder+1):
-				net.addLink(listOfHosts.mininetHost[-i], listOfSwitches[-i]) #link last host with last switch
+				net.addLink(listOfHosts[-i].mininetHost, listOfSwitches[-i]) #link last host with last switch
 		
 		if len(listOfSwitches) > 1:
 			for i in range (0, len(listOfSwitches)):
@@ -129,7 +130,7 @@ def InitializeThrottleQueue(switchInterface, minBitsPerSecond=0,
 	maxBitsPerSecond=1000000, queueSize=1000, queue_id=0):
 
 	os.system("sudo ovs-vsctl -- set Port {0} qos=@newqos -- "
-		"--id=@newqos create QoS type=linux-htb other-config:maxrate={2} queues={3}=@q{3} --"
+		"--id=@newqos create QoS type=linux-htb other-config:maxrate={2} queues={3}=@q{3} -- "
 		"--id=@q{3} create Queue other-config:min-rate={1} other-config:max-rate={2}"
 		.format(switchInterface, minBitsPerSecond, maxBitsPerSecond, queue_id))
 

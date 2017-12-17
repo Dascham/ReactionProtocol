@@ -132,16 +132,17 @@ def SendStringToThrottleManager(str):
 
 # Host a server, listening for signals on port: 8085
 if __name__=='__main__':
+	print("Started a delegator")
 	host = socket.gethostbyname(socket.gethostname()) #Gets the IP of the machine (not the localhost address)
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	serversocket.bind((host, 8085))
 	serversocket.listen(99)
 	while 1:
 		# Accept socket
-		clientsock, addr = serversocket.accept()
+		connectionSocket, addr = serversocket.accept()
 		
 		# Read in data 
-		data = clientsock.recv(1024)
+		data = connectionSocket.recv(1024)
 		print 'data recieved: ' + data
 		
 		# Dispatch thread to send signal to delegators

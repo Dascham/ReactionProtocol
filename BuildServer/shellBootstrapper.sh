@@ -1,0 +1,20 @@
+#!/bin/sh
+
+#1, Pox controller
+gnome-terminal -e "$HOME/Desktop/poxDart/pox/pypy/bin/pypy $HOME/Desktop/poxDart/pox/pox.py log.level --DEBUG forwarding.l2_multi openflow.discovery PoxModule.ThrottleManager misc.gephi_topo"
+
+#Open our Command Server
+#gnome-terminal -e "python $HOME/Desktop/P5ReactionProtocol/Attacker/CommandServer.py"
+
+#All Mininet related stuff
+#gnome-terminal -e "python $HOME/Desktop/P5ReactionProtocol/BuildServer/Bootstrapper.py"
+
+
+#sflow forwarding
+#gnome-terminal -e "sflowtool -f 127.0.0.1/7001 -f 127.0.0.1/7002"
+
+#Fastnetmon
+#gnome-terminal -e "/opt/Fastnetmon/Fastnetmon"
+#(Forwader is launched by FNM, when an attack is detected)
+#The networks/hosts FNM should monitor, should have been configured by a function in the Mininet-thing
+
