@@ -8,12 +8,21 @@ import threading
 ThrottleManager = ('192.168.2.2', 5001)
 
 # We assume that these two lists are provided by Mininet or sumthin...
-Delegators = ['10.0.0.56', '10.0.0.87'] #Placeholders
+Delegators = [] #Placeholders
 switches = []
 
 # To keep track of shit
 PanicSignals = []
 StopSignals = []
+
+#get IPs from file, and place into list of delegtors
+def getDelegatorListFromFile():
+	try:
+		file = open("~/Desktop/delegatorIPs", "r")
+		for line in file
+			Delegators.append(line)
+	except Exception as e:
+		print 'Could not find delegtorsIPs file!'
 
 def printList(list):
 	if list:
