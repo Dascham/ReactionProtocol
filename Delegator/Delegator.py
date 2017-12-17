@@ -35,7 +35,7 @@ class Signal():
 	def TTLDestroyer(self):
 		while 1:
 			if time.time() > self.timestamp + self.TTL: #If shit is outdated
-				SendStringToThrottleManager(self.victimIP + '/' + 'stop') #Request a it to sthap
+				SendStringToThrottleManager(self.victimIP + '/' + 'STOP') #Request a it to sthap
 				print 'signal from: ' + self.victimIP + ' has expired, and has been removed'
 				# Remove self from lists
 				if self in PanicSignals:
