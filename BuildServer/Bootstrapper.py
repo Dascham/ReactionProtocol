@@ -33,10 +33,8 @@ def StartController():
 	thread1 = Thread(target=StartInThread, args=())
 	thread1.start()
 '''
-<<<<<<< HEAD
+
 #2
-=======
->>>>>>> de48e2886b9af3c8253aa9154f759aaf2184dccf
 def InitializeTopology(net):
 	ISPs = []
 	for i in range(0, 3):
@@ -88,7 +86,6 @@ def AssignDelegators(allISPs, participatingISPs):
 			host.mininetHost.cmd("python $HOME/Desktop/P5ReactionProtocol/Delegator/Delegator.py")
 	'''
 	def RunDelegatorCode(host):
-<<<<<<< HEAD
 		host.mininetHost.cmd("sudo python $HOME/Desktop/P5ReactionProtocol/Delegator/Delegator.py")
 
 	if len(allISPs) < participatingISPs:
@@ -96,7 +93,6 @@ def AssignDelegators(allISPs, participatingISPs):
 			host = IPS.listOfHosts[randint(0, len(ISP.listOfHosts))]
 			thread1 = Thread(target=RunDelegatorCode, args=(host))
 			thread1.start()
-=======
 		host.mininetHost.cmd("sudo python ~/Desktop/P5ReactionProtocol/Delegator/Delegator.py"))
 	def WriteToFile(delegators):
 		try:
@@ -112,22 +108,18 @@ def AssignDelegators(allISPs, participatingISPs):
 		for ISP in allISPs:
 			ḧost = IPS.listOfHosts[randint(0, len(ISP.listOfHosts))]
 			delegators.append(host)
->>>>>>> de48e2886b9af3c8253aa9154f759aaf2184dccf
 	else:
 		for i in range(0, len(allISPs)):
 			host = allISPs[i].listOfHosts[randint(0, len(allISPs[i].listOfHosts))]
-<<<<<<< HEAD
 			thread1 = Thread(target=RunDelegatorCode, args=(host))
 			thread1.start()
 	'''
-=======
 			delegators.append(host)
 	WriteToFile(delegators)
 
 	for delegator in delegators:
 		thread1 = Thread(target=RunDelegatorCode, args=(host))
 		thread1.start()
->>>>>>> de48e2886b9af3c8253aa9154f759aaf2184dccf
 #6
 def Assign(listOfHosts, numberOfHosts, programPath):
 	def RunClientCode(host, programPath):
@@ -143,7 +135,6 @@ def Assign(listOfHosts, numberOfHosts, programPath):
 		thread1.start()
 	return victims 
 
-<<<<<<< HEAD
 #Takes IPs from mininet, and puts them into the file, where FNM
 #looks for IPs to listen to
 def FastNetMonConfigurator(iplist):
@@ -163,8 +154,6 @@ def StartForwarder():
 	thread1.start()
 '''
 print("Adding controller")
-=======
->>>>>>> de48e2886b9af3c8253aa9154f759aaf2184dccf
 net = AddPoxController()
 print("Done")
 time.sleep(3)
@@ -186,7 +175,6 @@ time.sleep(3)
 
 print("Assigning delegators")
 AssignDelegators(ISPs, 3)
-<<<<<<< HEAD
 print("Done")
 time.sleep(3)
 
@@ -195,17 +183,11 @@ os.system("sudo mn -c")
 
 
 '''
-=======
-
-
-
->>>>>>> de48e2886b9af3c8253aa9154f759aaf2184dccf
 programPath = "sudo python ~/Desktop/P5ReactionProtocol/Client/Linker.py"
 Assign(GetAllHosts(ISPs), 1, programPath) #assign victims
 
 programPath = "sudo python ~/Desktop/P5ReactionProtocol/hpingsomething.py"
 Assign(GetAllHosts(ISPs), 5, programPath) #assign attackers
-<<<<<<< HEAD
 
 FastNetMonConfigurator()
 '''
@@ -218,5 +200,3 @@ time.sleep(2)
 
 print(switches[0].defaultDpid())
 '''
-=======
->>>>>>> de48e2886b9af3c8253aa9154f759aaf2184dccf
