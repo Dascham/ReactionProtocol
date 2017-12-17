@@ -15,12 +15,15 @@ def endProc(proc):
 
 if __name__=='__main__':
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	server.connect(CommandServer)
+	#server.connect(CommandServer)
 	# Listen for command from command server
 	while True:
 		data = server.recv(1024)
 		if data == '':
-			server.connect(CommandServer)
+			try:
+				server.connect(CommandServer)
+			except Exception as e:
+				print 'Could not reach Command server!'
 
 		# Look at how many data fields have been recieved
 		NumberOfStatements = data.count('/') + 1
