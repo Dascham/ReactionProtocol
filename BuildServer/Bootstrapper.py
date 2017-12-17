@@ -22,6 +22,7 @@ from MininetTopologies.topologyFunctions import *
 	#11: Perform test of reaction protocol, by having attackers run Hping_3
 
 #1
+'''
 def StartController():
 	def StartInThread():
 		pypy = "~/Desktop/poxDart/pox/pypy/bin/pypy"
@@ -31,7 +32,7 @@ def StartController():
 		#PoxModule.ThrottleManager
 	thread1 = Thread(target=StartInThread, args=())
 	thread1.start()
-
+'''
 def InitializeTopology(net):
 	ISPs = []
 	for i in range(0, 4):
@@ -59,7 +60,7 @@ def TestConnectivity(net):
 	print(result)
 
 #4
-def InstallQueues(ISPs)
+def InstallQueues(ISPs):
 	switches = GetAllSwitches(ISPs)
 	for switch in switches:
 		interfaces = switch.defaultDpid()
@@ -68,24 +69,34 @@ def InstallQueues(ISPs)
 #5
 def AssignDelegators(allISPs, participatingISPs):
 	def RunDelegatorCode(host):
-		host.mininetHost.cmd("sudo python ~/Desktop/P5ReactionProtocol/Delegator/Delegator.py")
+		host.mininetHost.cmd("sudo python ~/Desktop/P5ReactionProtocol/Delegator/Delegator.py"))
+	def WriteToFile(delegators):
+		try:
+			file_object = open("~/Desktop/delegatorIPs", "w")
+				for delegator in delegators
+					file_object.write(delegator.mininetHost.IP()+"\n")
+				file_object.close()
+		except: Exception as e:
+			print("Could not write delegator IP to file")
 
+	delegators = []
 	if len(allISPs) < participatingISPs:
 		for ISP in allISPs:
 			ḧost = IPS.listOfHosts[randint(0, len(ISP.listOfHosts))]
-			thread1 = Thread(target=RunDelegatorCode, args=(host))
-			thread1.start()
+			delegators.append(host)
 	else:
 		for i in range(0, len(allISPs))
 			host = allISPs[i].listOfHosts[randint(0, len(allISPs[i].listOfHosts))]
-			thread1 = Thread(target=RunDelegatorCode, args=(host))
-			thread1.start()
+			delegators.append(host)
+	WriteToFile(delegators)
 
+	for delegator in delegators:
+		thread1 = Thread(target=RunDelegatorCode, args=(host))
+		thread1.start()
 #6
 def Assign(listOfHosts, numberOfHosts, programPath):
 	def RunClientCode(host, programPath):
 		host.mininetHost.cmd(programPath)
-
 	victims = []
 	for i in range(0, numberOfVictims)
 		host = listOfHosts[randint(0, len(listOfHosts)-1)]
@@ -97,39 +108,17 @@ def Assign(listOfHosts, numberOfHosts, programPath):
 		thread1.start()
 	return victims 
 
-#7
-#skip for now
-
-#8
-#skip for now
-
-#9
-def StartForwarder():
-	def StartInThread():
-		os.system("sudo python ~/Desktop/P5ReactionProtocol/Client/Forwarder.py")
-	thread1 = Thread(target=StartInThread, args=())
-	thread1.start()
-#10
-def AssignAttackers(listOfHosts, numberOfAttackers):
-
-StartController()
 net = AddPoxController()
 ISPs = InitializeTopology(net) #currently without a NAT device
 TestConnectivity(net)
 InstallQueues(ISPs)
 AssignDelegators(ISPs, 3)
+
+
+
 programPath = "sudo python ~/Desktop/P5ReactionProtocol/Client/Linker.py"
 Assign(GetAllHosts(ISPs), 1, programPath) #assign victims
 
 StartForwarder()
 programPath = "sudo python ~/Desktop/P5ReactionProtocol/hpingsomething.py"
 Assign(GetAllHosts(ISPs), 5, programPath) #assign attackers
-
-'''
-thread1 = Thread(target=StartController)
-thread1.start()
-
-time.sleep(2)
-
-print(switches[0].defaultDpid())
-'''
