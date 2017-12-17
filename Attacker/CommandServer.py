@@ -16,10 +16,7 @@ HOST = socket.gethostbyname(socket.gethostname())
 def readCommands():
 	print 'Command: <start or stop> <syn or udp> <targetIP>'
 	while True:
-		try:
-			inString = raw_input('>>')
-		except Exception as e:
-			print 'INPUT ERROR!'
+		inString = raw_input('>>')
 		
 		NumberofFields = inString.count(' ') + 1
 
