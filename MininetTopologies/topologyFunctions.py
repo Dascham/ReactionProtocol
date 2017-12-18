@@ -11,16 +11,10 @@ from random import randint
 hostCounter = 1
 switchCounter = 1
 
-
 class Host():
 	def __init__(self, mininetHost):
 		self.mininetHost = mininetHost
 		self.HasAssignment = False
-
-#class Switch():
-	#def __init__(self, mininetSwitch, name)
-	#self.mininetSwitch = mininetSwitch
-	#self.name = name
 
 class GatewaySwitch():
 	def __init__(self, mininetSwitch):
@@ -44,6 +38,9 @@ class ISP:
 			self.ConnectISPDevices(self.net, self.listOfHosts, self.listOfSwitches)
 		if self.listOfSwitches and self.listOfGateways:
 			self.ConnectSwitchesAndGateways(self.net, self.listOfSwitches, self.listOfGateways)
+
+		#write all DPIDs to a file
+		WriteToFile()
 
 	def ConnectISPDevices(self, net, listOfHosts, listOfSwitches):
 		number = len(listOfHosts)/len(listOfSwitches)
@@ -130,6 +127,18 @@ def GetAllHosts(allISPs):
 	for ISP in allISPs:
 		hosts.extend(ISP.listOfHosts)
 	return hosts
+
+def WriteToFile(switches, gateways):
+	try:
+		f = open("/home/user/Desktop/isp%d"%(self.id), "w")
+		for switch in switches:
+			f.write(switch.defaultDpid()+'\n')
+		for i in range(0, len(gateways))
+			gateways[i].mininetSwitch
+	f.close()
+	except Exception as e:
+		print("Could not write DPIDs to file: %s "%(e))
+
 
 def InitializeThrottleQueue(switchInterface, minBitsPerSecond=0, 
 	maxBitsPerSecond=1000000, queueSize=1000, queue_id=0):

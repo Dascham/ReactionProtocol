@@ -82,34 +82,6 @@ def wrapper(fn,collector):
 #--------------------SFLOW----------------------------
 
 
-
-#sequence of things to happen:
-	#1: start pox controller, with l2_multi and throttle manager 			Done
-	#2: start mininet with a topology 										Done
-	#3: ensure full connectivity in the mininet -> run pingall 				Done
-	#4: install queues in all switches and gateway switches 				Done
-	#5: Assign delegators (runs delegator code) 							Done
-	#6: Assign victim(s) (runs client code "Linker")						Done
-	#7: select victim buddy (runs client code "Linker")						Skip 
-	#8: Initiate IDS fastnetmon to start monitoring future victim 			Frederik Do
-	#9: Start forwarder 													Done				
-	#10: Assign Attackers													Done
-
-	#11: Perform test of reaction protocol, by having attackers run Hping_3
-
-#1
-'''
-def StartController():
-	def StartInThread():
-		pypy = "~/Desktop/poxDart/pox/pypy/bin/pypy"
-		gephiData = "misc.gephi_topo"
-
-		os.system("%s ~/Desktop/poxDart/pox/pox.py log.level --DEBUG forwarding.l2_multi openflow.discovery PoxModule.ThrottleManager" %(pypy))
-		#PoxModule.ThrottleManager
-	thread1 = Thread(target=StartInThread, args=())
-	thread1.start()
-'''
-
 #2
 def InitializeTopology(net):
 	ISPs = []
@@ -150,15 +122,6 @@ def InstallQueues(ISPs):
 		#print queues that have just been created
 		os.system("sudo ovs-ofctl -O openflow10 queue-stats %s"%(switch.name))
 
-#4.1
-'''
-def ConfigureSwitchesForSFlow(ISPs):
-	switches = GetAllSwitches(ISPs)
-	for switch in switches:
-		print(switch.name)
-		os.system("sudo ovs-vsctl -- --id=@sflow create sflow agent=eth0 target=\"127.0.0.1:6343\" sampling=10 polling=20 -- -- set bridge %s sflow=@sflow"%(switch.name))
-		time.sleep(0.1)
-'''
 #5
 def AssignDelegators(allISPs, participatingISPs):
 	def WriteToFile(Delegators):
@@ -172,14 +135,16 @@ def AssignDelegators(allISPs, participatingISPs):
 
 	Delegators = []
 	if len(allISPs) < participatingISPs:
+        counter = 0
 		for ISP in allISPs:
 			host = ISP.listOfHosts[randint(0, len(ISP.listOfHosts)-1)]
 			while host.HasAssignment:
 				host = ISP.listOfHosts[randint(0, len(ISP.listOfHosts)-1)]
 
 			host.HasAssignment = True
-			host.mininetHost.cmd("python $HOME/Desktop/P5ReactionProtocol/Delegator/Delegator.py")
+			host.mininetHost.cmd("python $HOME/Desktop/P5ReactionProtocol/Delegator/Delegator.py %d"%(counter))
 			delegators.append(host)
+            counter += 1
 	else:
 		for i in range(0, len(allISPs)):
 			host = allISPs[i].listOfHosts[randint(0, len(allISPs[i].listOfHosts)-1)]
@@ -187,39 +152,9 @@ def AssignDelegators(allISPs, participatingISPs):
 				host = allISPs[i].listOfHosts[randint(0, len(allISPs[i].listOfHosts)-1)]
 
 			host.HasAssignment = True
-			host.mininetHost.cmd("python $HOME/Desktop/P5ReactionProtocol/Delegator/Delegator.py")
+			host.mininetHost.cmd("python $HOME/Desktop/P5ReactionProtocol/Delegator/Delegator.py %d"%(i))
 			Delegators.append(host)
-
 	WriteToFile(Delegators)
-
-	'''		
-	def RunDelegatorCode(host):
-		host.mininetHost.cmd("sudo python $HOME/Desktop/P5ReactionProtocol/Delegator/Delegator.py")
-
-	if len(allISPs) < participatingISPs:
-		for ISP in allISPs:
-			host = IPS.listOfHosts[randint(0, len(ISP.listOfHosts))]
-			thread1 = Thread(target=RunDelegatorCode, args=(host))
-			thread1.start()
-		host.mininetHost.cmd("sudo python ~/Desktop/P5ReactionProtocol/Delegator/Delegator.py"))
-	d
-
-	delegators = []
-	if len(allISPs) < participatingISPs:
-		for ISP in allISPs:
-			host = IPS.listOfHosts[randint(0, len(ISP.listOfHosts))]
-			delegators.append(host)
-	else:
-		for i in range(0, len(allISPs)):
-			host = allISPs[i].listOfHosts[randint(0, len(allISPs[i].listOfHosts))]
-			thread1 = Thread(target=RunDelegatorCode, args=(host))
-			thread1.start()
-	
-
-	for delegator in delegators:
-		thread1 = Thread(target=RunDelegatorCode, args=(host))
-		thread1.start()
-	'''
 #6
 def Assign(listOfHosts, numberOfVictims, programPath):
 	victims = []
