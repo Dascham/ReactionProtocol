@@ -147,6 +147,7 @@ def SendStringToThrottleManager(str):
 # Host a server, listening for signals on port: 8085
 if __name__=='__main__':
 	# Read in addresses of other delegators, and a list of switches assigned to this delegator
+	DelegatorID = int(sys.argv[1])
 	getOtherDelegatorsListFromFile()
 	getSwitchesForThisDelegator()
 	host = socket.gethostbyname(socket.gethostname()) #Gets the IP of the machine (not the localhost address)
