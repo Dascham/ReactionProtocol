@@ -13,8 +13,8 @@ from mininet.util import quietRun
 
 #linear = LinearTopo(k=4)
 #topo=linear,
-#autoSetMacs=False
-net = Mininet(switch = OVSSwitch)
+#
+net = Mininet(switch = OVSSwitch, autoSetMacs=True)
 
 poxcontroller = net.addController(name="pox", 
                 controller=RemoteController, 
@@ -31,8 +31,18 @@ net.addLink(h2, s1)
 
 net.start()
 
+
+#Prints exactly: OVSSwitch s1: lo:127.0.0.1,s1-eth1:None
+#print("Hello"+s1.defaultDpid) 
+
+
+
+#print exactly the DPID (00000000000000001) something along those lines
 print(s1.defaultDpid())
-print(h1.IP())
+
+
+
+print(h1.IP()) #prints exactly "10.0.0.1"
 
 
 collector = '127.0.0.1'
