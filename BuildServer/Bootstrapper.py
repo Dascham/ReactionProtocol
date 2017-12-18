@@ -135,7 +135,7 @@ def AssignDelegators(allISPs, participatingISPs):
 
 	Delegators = []
 	if len(allISPs) < participatingISPs:
-        counter = 0
+		counter = 0
 		for ISP in allISPs:
 			host = ISP.listOfHosts[randint(0, len(ISP.listOfHosts)-1)]
 			while host.HasAssignment:
@@ -144,7 +144,7 @@ def AssignDelegators(allISPs, participatingISPs):
 			host.HasAssignment = True
 			host.mininetHost.cmd("python $HOME/Desktop/P5ReactionProtocol/Delegator/Delegator.py %d"%(counter))
 			delegators.append(host)
-            counter += 1
+			counter += 1
 	else:
 		for i in range(0, len(allISPs)):
 			host = allISPs[i].listOfHosts[randint(0, len(allISPs[i].listOfHosts)-1)]

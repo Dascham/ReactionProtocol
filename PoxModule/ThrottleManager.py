@@ -75,7 +75,7 @@ class ThrottleManager(object):
         switchConnectionObject.connection.send(msg)
 
     def _handle_ConnectionUp(self, event):
-        self.log.debug("Am here")
+        print("Am here")
         print(event.dpid) #prints: 1
         print(dpid_to_str(event.dpid))#prints: 00-00-...01 
         #core.openflow.sendToDpid(dpid, msg)
