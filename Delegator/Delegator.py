@@ -10,14 +10,14 @@ ThrottleManager = ('192.168.2.2', 5001)
 # Delegators are read in from a file
 Delegators = []
 # Switches are ???
-switches = []
+Switches = []
 
 # To keep track of shit
 PanicSignals = []
 StopSignals = []
 
 #get IPs from file, and place into list of delegtors
-def getDelegatorListFromFile():
+def getOtherDelegatorsListFromFile():
 	try:
 		file = open("~/Desktop/delegatorIPs", "r")
 		for line in file
@@ -25,6 +25,17 @@ def getDelegatorListFromFile():
 		file.close()
 	except Exception as e:
 		print 'Could not find delegtorsIPs file!'
+
+# Get switches, from file, with filename <this delegator ip>
+def getSwitchesForThisDelegator():
+	thisDelegatorIP = socket.gethostbyname(socket.gethostname())
+	try:
+		file = open("$HOME/Desktop/Switches/" + thisDelegatorIP , "r")
+		for line in file:
+			Switches.append(line)
+		file.close
+	except Exception as e:
+		print 'File containing switches for delegator: ' + thisDelegatorIP + ' could not be found!'
 
 def printList(list):
 	if list:
@@ -54,6 +65,7 @@ class Signal():
 				elif self in StopSignals:
 					StopSignals.remove(self)
 				break
+				#Delete entry in list, after send to ThrottleManager instead
 
 	def printer(self):
 		print '-------Signal Recieved-------' + '\nisPanic: ' + str(self.isPanic) + '\nisStop: ' + str(self.isStop) + '\nincNo: ' + str(self.incidentNumber) + '\nvictimIP: ' + str(self.victimIP) + '\ntimestmp: ' + str(self.timestamp) + '\nTLL: ' + str(self.TTL) + '\n-----------------------------'
@@ -132,11 +144,13 @@ def SendStringToThrottleManager(str):
 
 # Host a server, listening for signals on port: 8085
 if __name__=='__main__':
-	print("Started a delegator")
+	# Read in addresses of other delegators, and a list of switches assigned to this delegator
+	getOtherDelegatorsListFromFile()
+	getSwitchesForThisDelegator()
 	host = socket.gethostbyname(socket.gethostname()) #Gets the IP of the machine (not the localhost address)
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	serversocket.bind((host, 8085))
-	serversocket.listen(99)
+	serversocket.listen(999)
 	while 1:
 		# Accept socket
 		connectionSocket, addr = serversocket.accept()
