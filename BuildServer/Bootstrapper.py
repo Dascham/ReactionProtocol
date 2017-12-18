@@ -3,6 +3,7 @@ from mininet.net import Mininet
 from mininet.cli import CLI
 import time, os, sys
 from threading import Thread
+import thread
 
 #------------------------
 from mininet.util import quietRun
@@ -82,9 +83,6 @@ def wrapper(fn,collector):
 
 
 
-
-
-
 #sequence of things to happen:
 	#1: start pox controller, with l2_multi and throttle manager 			Done
 	#2: start mininet with a topology 										Done
@@ -153,22 +151,24 @@ def InstallQueues(ISPs):
 		os.system("sudo ovs-ofctl -O openflow10 queue-stats %s"%(switch.name))
 
 #4.1
+'''
 def ConfigureSwitchesForSFlow(ISPs):
 	switches = GetAllSwitches(ISPs)
 	for switch in switches:
 		print(switch.name)
 		os.system("sudo ovs-vsctl -- --id=@sflow create sflow agent=eth0 target=\"127.0.0.1:6343\" sampling=10 polling=20 -- -- set bridge %s sflow=@sflow"%(switch.name))
-
+		time.sleep(0.1)
+'''
 #5
 def AssignDelegators(allISPs, participatingISPs):
-	def WriteToFile(delegators):
+	def WriteToFile(Delegators):
 		try:
-			file_object = open("~/Desktop/delegatorIPs", "w")
-			for delegator in delegators:
-				file_object.write(delegator.mininetHost.IP()+"\n")
-				file_object.close()
+			file = open("/home/user/Desktop/delegatorIPs", "w")
+			for delegator in Delegators:
+				file.write(delegator.mininetHost.IP()+'\n')
+			file.close()
 		except Exception as e:
-			print("Could not write delegator IP to file")
+			print("Could not write delegator IP to file exception: %s"%(e))
 
 	Delegators = []
 	if len(allISPs) < participatingISPs:
@@ -221,38 +221,30 @@ def AssignDelegators(allISPs, participatingISPs):
 		thread1.start()
 	'''
 #6
-def Assign(listOfHosts, numberOfHosts, programPath):
-	def RunClientCode(host, programPath):
-		host.mininetHost.cmd(programPath)
+def Assign(listOfHosts, numberOfVictims, programPath):
 	victims = []
 	for i in range(0, numberOfVictims):
 		host = listOfHosts[randint(0, len(listOfHosts)-1)]
-		while host.HasAssignment: #becomes infinite loop, if there are no hosts left without an assignment
-			host = listOfHosts[randint(0, len(listOfHosts)-1)] #randomly select another host, until a host is found that has not yet been assigned
+		while host.HasAssignment: 							   #becomes infinite loop, if there are no hosts left without an assignment
+			host = listOfHosts[randint(0, len(listOfHosts)-1)]   #randomly select another host, until a host is found that has not yet been assigned
 		host.HasAssignment = True
+		thread.start_new_thread(host.mininetHost.cmd, (programPath, ))
+		time.sleep(1)
 		victims.append(host)
-		thread1 = Thread(target=RunClientCode, args=(host, programPath))
-		thread1.start()
+
 	return victims 
 
 #Takes IPs from mininet, and puts them into the file, where FNM
 #looks for IPs to listen to
-def FastNetMonConfigurator(iplist):
+def FastNetMonConfigurator(victims):
 	try:
 		file = open("/etc/networks_list", "w")
-		for item in iplist:
-			file.write(item + '/32 \n')
+		for item in victims:
+			file.write(item.mininetHost.IP() + '/32 \n')
 		file.close()
 	except Exception as e:
 		print('FastNetMons networks_list file not found!')
 
-'''
-def StartForwarder():
-	def StartInThread():
-		os.system("sudo python ~/Desktop/P5ReactionProtocol/Client/Forwarder.py")
-	thread1 = Thread(target=StartInThread, args=())
-	thread1.start()
-'''
 print("Adding controller")
 net = AddPoxController()
 print("Done")
@@ -273,40 +265,32 @@ InstallQueues(ISPs)
 print("Done")
 time.sleep(3)
 
-print("Configuring switches for SFlow")
-ConfigureSwitchesForSFlow(ISPs)
-print("Done")
-time.sleep(3)
-
 print("Assigning delegators")
 AssignDelegators(ISPs, 3)
 print("Done")
 time.sleep(3)
 
-cli = CLI(net)
+print("Assigning victims")
+programPath = "sudo python $HOME/Desktop/P5ReactionProtocol/Client/Linker.py"
+victims = Assign(GetAllHosts(ISPs), 1, programPath) #assign victims, 1 victim
+print("Done")
+time.sleep(3)
+
+#fastnetmon 
+print("Configuring fastnetmon")
+FastNetMonConfigurator(victims)
+print("Done")
+time.sleep(3)
+
+hosts = GetAllHosts(ISPs)
+for host in hosts:
+	print("Host IP: %s. Host Has assignment: %d"%(host.mininetHost.IP(), host.HasAssignment))
+
+print("Assigning attackers")
+programPath = "sudo python $HOME/Desktop/P5ReactionProtocol/Attacker/Attacker.py"
+Assign(GetAllHosts(ISPs), 3, programPath) #assign attackers, 3 attackers
+print("Done")
+time.sleep(3)
 
 var = raw_input("Speak friend, and enter..")
 os.system("sudo mn -c")
-
-
-'''
-programPath = "sudo python ~/Desktop/P5ReactionProtocol/Client/Linker.py"
-Assign(GetAllHosts(ISPs), 1, programPath) #assign victims
-
-#fastnetmon 
-FastNetMonConfigurator()
-
-programPath = "sudo python ~/Desktop/P5ReactionProtocol/hpingsomething.py"
-Assign(GetAllHosts(ISPs), 5, programPath) #assign attackers
-
-
-'''
-
-'''
-thread1 = Thread(target=StartController)
-thread1.start()
-
-time.sleep(2)
-
-print(switches[0].defaultDpid())
-'''

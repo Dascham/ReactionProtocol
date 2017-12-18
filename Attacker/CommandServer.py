@@ -11,7 +11,7 @@ import time
 bots = []
 
 PORT = 666
-HOST = socket.gethostbyname(socket.gethostname())
+HOST = '192.168.2.2'
 #HOST = '127.0.0.1'
 
 # Read input from terminal, and send commands to the bots
@@ -47,7 +47,7 @@ if __name__=='__main__':
 	serversocket.bind((HOST, PORT))
 	serversocket.listen(999)
 
-	
+	print 'Running server on: ' + HOST 
 	
 	botsLoggerFile = open("output", "w")
 	# Open xterm window with logs from that file
