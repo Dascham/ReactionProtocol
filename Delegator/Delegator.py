@@ -147,17 +147,16 @@ if __name__=='__main__':
 	# Read in addresses of other delegators, and a list of switches assigned to this delegator
 	getOtherDelegatorsListFromFile()
 	getSwitchesForThisDelegator()
-
 	host = socket.gethostbyname(socket.gethostname()) #Gets the IP of the machine (not the localhost address)
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	serversocket.bind((host, 8085))
 	serversocket.listen(999)
 	while 1:
 		# Accept socket
-		clientsock, addr = serversocket.accept()
+		connectionSocket, addr = serversocket.accept()
 		
 		# Read in data 
-		data = clientsock.recv(1024)
+		data = connectionSocket.recv(1024)
 		print 'data recieved: ' + data
 		
 		# Dispatch thread to send signal to delegators
