@@ -17,6 +17,11 @@ class Host():
 		self.mininetHost = mininetHost
 		self.HasAssignment = False
 
+#class Switch():
+	#def __init__(self, mininetSwitch, name)
+	#self.mininetSwitch = mininetSwitch
+	#self.name = name
+
 class GatewaySwitch():
 	def __init__(self, mininetSwitch):
 		self.mininetSwitch = mininetSwitch
@@ -116,8 +121,8 @@ def GetAllSwitches(allISPs):
 	switches = []
 	for ISP in allISPs:
 		switches.extend(ISP.listOfSwitches)
-		for gateway in ISP.listOfGateways:
-			switches.append(gateway.mininetSwitch)
+		for i in range(0, len(ISP.listOfGateways)):
+			switches.append(ISP.listOfGateways[i].mininetSwitch)
 	return switches
 
 def GetAllHosts(allISPs):
