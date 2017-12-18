@@ -54,6 +54,7 @@ class Signal():
 
 	# This will start in a thread, when a signal object is created.
 	# If it ever expires (TTL has passed), it removes itself from the list
+	'''
 	def TTLDestroyer(self):
 		while 1:
 			if time.time() > self.timestamp + self.TTL: #If shit is outdated
@@ -66,6 +67,7 @@ class Signal():
 					StopSignals.remove(self)
 				break
 				#Delete entry in list, after send to ThrottleManager instead
+	'''
 
 	def printer(self):
 		print '-------Signal Recieved-------' + '\nisPanic: ' + str(self.isPanic) + '\nisStop: ' + str(self.isStop) + '\nincNo: ' + str(self.incidentNumber) + '\nvictimIP: ' + str(self.victimIP) + '\ntimestmp: ' + str(self.timestamp) + '\nTLL: ' + str(self.TTL) + '\n-----------------------------'
@@ -80,7 +82,7 @@ class Signal():
 		self.victimIP = victimIP
 		self.timestamp = time.time()
 		self.TTL = TTL
-		thread.start_new_thread(self.TTLDestroyer, ())
+		#thread.start_new_thread(self.TTLDestroyer, ())
 		self.printer()
 
 # Decide what to do with a signal
@@ -90,7 +92,7 @@ def ProcessSignal(data):
 		PanicSignals.append(signal)
 
 		# Request some throttle action!
-		SendStringToThrottleManager(signal.victimIP + '/' + 'START')
+		SendStringToThrottleManager(signal.victimIP + '/' + 'START' + '/' + signal.TTL)
 
 	elif signal.isStop is True:
 		StopSignals.append(signal)

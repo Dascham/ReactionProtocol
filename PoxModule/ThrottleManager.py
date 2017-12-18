@@ -18,6 +18,7 @@ class ThrottleManager(object):
         self.clientIPAddress = None
         self.start = False
         self.stop = False
+        self.TTL = None
         self.log = core.getLogger("Report: ")
 
         #start thread immediatly
@@ -37,7 +38,11 @@ class ThrottleManager(object):
         msg = connectionSocket.recv(1024)
         msg.decode("ascii")
         # incoming message looks like: <ip> / <request type>
-        self.clientIPAddress, requestType = msg.split('/')
+
+        if msg.count('/') == 1:
+            self.clientIPAddress, requestType = msg.split('/')
+        elif msg.count('/') == 2:
+            self.clientIPAddress, requestType, self.TTL = msg.split('/')
 
         #Determine if this message is a start- or stop-request
         if requestType is 'START':
