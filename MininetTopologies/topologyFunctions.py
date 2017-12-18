@@ -40,7 +40,7 @@ class ISP:
 			self.ConnectSwitchesAndGateways(self.net, self.listOfSwitches, self.listOfGateways)
 
 		#write all DPIDs to a file
-		WriteToFile()
+		self.WriteToFile(self.listOfSwitches, self.listOfGateways)
 
 	def ConnectISPDevices(self, net, listOfHosts, listOfSwitches):
 		number = len(listOfHosts)/len(listOfSwitches)
@@ -98,6 +98,17 @@ class ISP:
 				switches.append(switch)
 			return switches
 
+	def WriteToFile(self, switches, gateways):
+		try:
+			f = open("/home/user/Desktop/isp%d"%(self.id), "w")
+			for switch in switches:
+				f.write(switch.defaultDpid()+'\n')
+			for i in range(0, len(gateways)):
+				f.write(gateways[i].mininetSwitch.defaultDpid()+'\n')
+			f.close()
+		except Exception as e:
+			print("Could not write DPIDs to file: %s "%(e))
+
 def ConnectTwoISPs(net, isp_a, isp_b):
 	for i in range(0, len(isp_a.listOfGateways)):
 		for j in range(0, len(isp_b.listOfGateways)):
@@ -128,16 +139,7 @@ def GetAllHosts(allISPs):
 		hosts.extend(ISP.listOfHosts)
 	return hosts
 
-def WriteToFile(switches, gateways):
-	try:
-		f = open("/home/user/Desktop/isp%d"%(self.id), "w")
-		for switch in switches:
-			f.write(switch.defaultDpid()+'\n')
-		for i in range(0, len(gateways))
-			gateways[i].mininetSwitch
-	f.close()
-	except Exception as e:
-		print("Could not write DPIDs to file: %s "%(e))
+
 
 
 def InitializeThrottleQueue(switchInterface, minBitsPerSecond=0, 
