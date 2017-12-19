@@ -95,6 +95,11 @@ class Topology(Topo):
 		self.addLink(del2, s3)
 		self.addLink(s3, attacker)
 
+		client.mininetHost.cmd('sudo python ~/Desktop/P5ReactionProtocol/ProofOfConcept/Client.py')
+		
+		del1.mininetHost.cmd('sudo python ~/Desktop/P5ReactionProtocol/ProofOfConcept/Delegator.py')
+		del2.mininetHost.cmd('sudo python ~/Desktop/P5ReactionProtocol/ProofOfConcept/Delegator.py')
+
 topos = {
     'minimal': Topology
 }
