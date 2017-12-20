@@ -69,9 +69,13 @@ class ISP:
 		if len(listOfSwitches) > len(listOfGateways):
 			for i in range(0, len(listOfGateways)):
 				net.addLink(listOfSwitches[i], listOfGateways[i].mininetSwitch)
+		elif len(listOfSwitches) < len(listOfGateways):
+			for i in range(0, len(listOfGateways)):
+				net.addLink(listOfSwitches[0], listOfGateways[i].mininetSwitch)
 		else:
 			for i in range(0, len(listOfSwitches)):
 				net.addLink(listOfSwitches[i], listOfGateways[i].mininetSwitch)
+
 
 	def AddHosts(self, net, numberOfHosts):
 		global hostCounter

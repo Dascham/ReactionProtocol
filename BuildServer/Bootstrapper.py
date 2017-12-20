@@ -185,16 +185,43 @@ net = AddPoxController()
 print("Done")
 time.sleep(3)
 
+
+ISPs = []
+isp = ISP(net, 10, 1, 4)
+ISPs.append(isp)
+
+for i in range(0, 4):
+	isp = ISP(net, 10, 1, 1)
+	ISPs.append(isp)
+
+ConnectTwoISPs(net, ISPs[0], ISPs[1])
+ConnectTwoISPs(net, ISPs[0], ISPs[2])
+ConnectTwoISPs(net, ISPs[0], ISPs[3])
+ConnectTwoISPs(net, ISPs[0], ISPs[4])
+
+net.build()
+nodes = net.values()
+print(nodes)
+
+net.addNAT().configDefault()
+net.start()
+
+
+
+
+'''
 print("Initiating mininet")
 ISPs = InitializeTopology(net) #currently with a NAT device
 print("Done")
 time.sleep(3)
-
+'''
 print("Ping test")
 TestConnectivity(net)
 print("Done")
 time.sleep(3)
 
+
+'''
 print("Installing queues")
 InstallQueues(ISPs)
 print("Done")
@@ -226,6 +253,6 @@ programPath = "sudo python $HOME/Desktop/P5ReactionProtocol/Attacker/Attacker.py
 Assign(GetAllHosts(ISPs), 3, programPath) #assign attackers, 3 attackers
 print("Done")
 time.sleep(3)
-
+'''
 var = raw_input("Speak friend, and enter..")
 os.system("sudo mn -c")

@@ -1,4 +1,17 @@
-from mininet.topo import Topo
+from mininet.net import Mininet
+from mininet.topo import LinearTopo
+from mininet.node import OVSKernelSwitch, OVSSwitch, RemoteController, Host, CPULimitedHost
+from threading import Thread
+from mininet.cli import CLI
+from mininet.link import TCLink
+from mininet.util import dumpNodeConnections
+from mininet.clean import Cleanup
+import os, time
+from mininet.util import quietRun
+from mininet.link import Intf
+from mininet.log import setLogLevel, info
+from mininet.nodelib import LinuxBridge
+import thread, threading
 
 #--------------------SFLOW----------------------------
 from mininet.util import quietRun
@@ -22,6 +35,7 @@ def getIfInfo(ip):
   for entry in ifs:
     if entry[1] == ip:
       return entry
+
 def configSFlow(net,collector,ifname):
   print "*** Enabling sFlow:"
   sflow = 'ovs-vsctl -- --id=@sflow create sflow agent=%s target=%s sampling=%s polling=%s --' % (ifname,collector,sampling,polling)
@@ -29,6 +43,7 @@ def configSFlow(net,collector,ifname):
     sflow += ' -- set bridge %s sflow=@sflow' % s
   print ' '.join([s.name for s in net.switches])
   quietRun(sflow)
+
 def sendTopology(net,agent,collector):
   print "*** Sending topology"
   topo = {'nodes':{}, 'links':{}}
@@ -55,6 +70,7 @@ def sendTopology(net,agent,collector):
     i += 1
 
   put('http://'+collector+':8008/topology/json',data=dumps(topo))
+
 def wrapper(fn,collector):
   def result( *args, **kwargs):
     res = fn( *args, **kwargs)
@@ -66,40 +82,50 @@ def wrapper(fn,collector):
   return result
 #--------------------SFLOW----------------------------
 
+net = Mininet(switch = OVSSwitch, autoSetMacs=True)
 
-class Topology(Topo):
+#setattr(Mininet, 'start', wrapper(Mininet.__dict__['start'], collector))
 
-	def build( self ):
-		net = Mininet(switch = OVSSwitch)
-		setattr(Mininet, 'start', wrapper(Mininet.__dict__['start'], collector))
+poxcontroller = net.addController(name="pox",
+				controller=RemoteController, 
+				ip="127.0.0.1", protocol="tcp", 
+				port=6633) 
 
-		net.addNAT().configDefault()
+#add hosts
+client = net.addHost('h1')		#10.0.0.1
+attacker = net.addHost('h2')	#10.0.0.2
 
-		#add hosts
-		client = net.addHost("client")		#10.0.0.1
-		attacker = net.addHost("attacker")	#10.0.0.2
+#add delegators
+del1 = net.addHost('h3')		#10.0.0.3
+del2 = net.addHost('h4')		#10.0.0.4
 
-		#add delegators
-		del1 = net.addHost("del1")			#10.0.0.3
-		del2 = net.addHost("del2")			#10.0.0.4
+#add switch
+s1 = net.addSwitch('s1')
+s2 = net.addSwitch('s2')
+s3 = net.addSwitch('s3')
 
-		#add switch
-		s1 = net.addSwitch("s1")
-		s2 = net.addSwitch("s2")
-		s3 = net.addSwitch("s3")
+net.addLink(client, s1)
+net.addLink(del1, s1)
+net.addLink(del2, s3)
+net.addLink(del1, s2)
+net.addLink(del2, s2)
+net.addLink(attacker, s3)
+net.addLink(s1, s2)
+net.addLink(s2, s3)
 
-		self.addLink(client, s1)
-		self.addLink(s1, del1)
-		self.addLink(del1, s2)
-		self.addLink(s2, del2)
-		self.addLink(del2, s3)
-		self.addLink(s3, attacker)
+net.build()
+net.addNAT().configDefault()
+net.start()
+net.pingAll()
 
-		client.mininetHost.cmd('sudo python ~/Desktop/P5ReactionProtocol/ProofOfConcept/Client.py')
-		
-		del1.mininetHost.cmd('sudo python ~/Desktop/P5ReactionProtocol/ProofOfConcept/Delegator.py')
-		del2.mininetHost.cmd('sudo python ~/Desktop/P5ReactionProtocol/ProofOfConcept/Delegator.py')
+#Start delegator program on the two delegators
+delegatorPath = 'python Delegator.py'
+delegator1 = net.get('h3')
+delegator2 = net.get('h4')
+thread.start_new_thread(delegator1.cmd, (delegatorPath, ))
+thread.start_new_thread(delegator2.cmd, (delegatorPath, ))
 
-topos = {
-    'minimal': Topology
-}
+cli = CLI(net)
+
+net.stop()
+
