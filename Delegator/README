@@ -1,5 +1,0 @@
-#Add things to this readme when necessary
-
-#This is where our reaction protocol will run
-
-#Every single delegator will run this program. It listens for messages from linkers, and dispatches threads for handling incomming messages, and passing them on to other delegators. Each delegator will request some throttling (start or stop) from a ThrottleManager (Pox module)
