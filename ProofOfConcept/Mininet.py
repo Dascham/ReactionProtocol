@@ -1,3 +1,25 @@
+'''
+This script describes and sets up our Mininiet instance
+We manually build a simple topology:
+
+delegator1---S2----delegator2
+	|     __/  \__    |
+	|  __/		  \__ |
+	S1/				 \S2
+	|				  |
+	|				  |
+  client		   attacker
+
+We also include sFlow in the Mininet instance, so that
+we can monitor (visualize) traffic on the network.
+Furthermore, sFlow enables use of IDS tools like
+FastNetMon. 
+Disclaimer: We have NOT written the code, enableling sFlow
+
+Also, noteworthy is that we install queues (0 and 1)
+on all switches, for the purpose of throttling.
+'''
+
 from mininet.net import Mininet
 from mininet.topo import LinearTopo
 from mininet.node import OVSKernelSwitch, OVSSwitch, RemoteController, Host, CPULimitedHost
@@ -13,7 +35,7 @@ from mininet.log import setLogLevel, info
 from mininet.nodelib import LinuxBridge
 import thread, threading
 
-#--------------------SFLOW----------------------------
+#--------------------SFLOW SEGMENT START----------------------------
 from mininet.util import quietRun
 from requests import put
 from json import dumps
@@ -80,49 +102,46 @@ def wrapper(fn,collector):
     sendTopology(net,agent,collector) 
     return res
   return result
-#--------------------SFLOW----------------------------
+#--------------------SFLOW SEGMENT END----------------------------
 
+# Install q0 and q1 on a given switch interface
+# with q1 employing the described throttling - queueSize
 def InitializeThrottleQueue(switchInterface, minBitsPerSecond=0, 
-	maxBitsPerSecond=10000000, queueSize=5000000):
+	maxBitsPerSecond=10000000, queueSize=3000000):
 	os.system("sudo ovs-vsctl -- set Port "+str(switchInterface)+" qos=@newqos -- \
 --id=@newqos create QoS type=linux-htb other-config:max-rate="+str(maxBitsPerSecond)+" queues=0=@q0,1=@q1 -- \
 --id=@q0 create Queue other-config:min-rate="+str(minBitsPerSecond)+" other-config:max-rate="+str(maxBitsPerSecond)+" -- \
 --id=@q1 create Queue other-config:min-rate="+str(queueSize)+" other-config:max-rate="+str(queueSize))
 
-
-	#os.system("sudo ovs-vsctl -- set Port {0} qos=@newqos -- "
-	#	"--id=@newqos create QoS type=linux-htb other-config:maxrate={2} queues={3}=@q{3} -- "
-	#	"--id=@q{3} create Queue other-config:min-rate={1} other-config:max-rate={2}"
-	#	.format(switchInterface, minBitsPerSecond, maxBitsPerSecond, queue_id))
-
-
 os.system("sudo ovs-vsctl emer-reset")
 
 net = Mininet(switch = OVSSwitch, autoSetMacs=True)
 
+# Enable sFlow
 setattr(Mininet, 'start', wrapper(Mininet.__dict__['start'], collector))
 
+# Add the external POX controller (needs to run before running this script)
 poxcontroller = net.addController(name="pox",
 				controller=RemoteController, 
 				ip="127.0.0.1", protocol="tcp", 
 				port=6633) 
 
-
-#add hosts
+# Add hosts
 client = net.addHost('h1')		#10.0.0.1
 attacker = net.addHost('h2')	#10.0.0.2
 
-#add delegators
+# Add delegators
 del1 = net.addHost('h3')		#10.0.0.3
 del2 = net.addHost('h4')		#10.0.0.4
 
-#add switch
+# Add switches
 s1 = net.addSwitch('s1')
 s2 = net.addSwitch('s2')
 s3 = net.addSwitch('s3')
 
 SwitchList = [s1, s2, s3]
 
+# Add links
 net.addLink(client, s1)
 net.addLink(del1, s1)
 net.addLink(del2, s3)
@@ -133,30 +152,32 @@ net.addLink(s1, s2)
 net.addLink(s2, s3)
 
 net.build()
+# Added NAT, for the purpose of communicating into and out of Mininet
+# as we wish to talk with ThrottleManager and Print Server (outside of MN)
 net.addNAT().configDefault()
 net.start()
 
+# Install queues for each interface on each switch
 print "Adding queues for switches..."
-
 for switch in SwitchList:
 	interfaces = switch.intfNames()
 	for i in range(1, len(interfaces)):
 		InitializeThrottleQueue(interfaces[i])
-	#print queues that have just been created
+	# Print queues that have just been created
 	os.system("sudo ovs-ofctl -O openflow10 queue-stats %s"%(switch.name))
-
 print "Added queues for switches!"
 
 net.pingAll()
 
-#Start delegator program on the two delegators
+# Start delegator program on the two delegators
 delegatorPath = 'python Delegator.py'
 delegator1 = net.get('h3')
 delegator2 = net.get('h4')
 thread.start_new_thread(delegator1.cmd, (delegatorPath, ))
 thread.start_new_thread(delegator2.cmd, (delegatorPath, ))
 
+# Enter the Mininet CLI
 cli = CLI(net)
 
 net.stop()
-
+# Remember to run "sudo mn -c", after an Mininet instace has exited

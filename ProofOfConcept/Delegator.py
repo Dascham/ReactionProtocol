@@ -1,3 +1,11 @@
+'''
+This is the Delegator, which will run on 1...n number of hosts in
+a Mininet topology. Each delegator is responsible for listening for
+panic signals from their own clients - to then pass on the data to
+other delegators. Each delegator will request throttling (start or stop)
+from a single ThrottleManager (POX module).
+'''
+
 import socket
 import sys
 import thread
@@ -5,19 +13,26 @@ import socket
 import fcntl
 import struct
 
+# Connection details for the Print Server
+# Runs outside of Mininet
 printerIP = '192.168.2.4'
 printerPORT = 8888
 
+# Conncetion details for the ThrottleManager
+# Runs outside of Mininet, as a POX module
 throttleManagerIP = '192.168.2.4'
 throttleManagerPORT = 7777
 
+# A hardcoded list of delegators
 DelegatorList = ['10.0.0.3', '10.0.0.4']
 
+# Gets the proper IP for a host, like: 10.0.0.4
 def getIpForThis():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("10.0.0.5", 80))
     return s.getsockname()[0]
 
+# For ease of use, we print to a Print Server
 def printToServer(string):
 	try:
 		printer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,24 +49,28 @@ def SendToThrottleManager(string):
 		throttleManager.send(string)
 		throttleManager.close()
 	except Exception as e:
-		print 'Could not send panic! ' + str(e)
+		print 'Could not send signal to ThrottleManager! ' + str(e)
 
+# Request either a start- or stop-throttling from the ThrottleManager
 def requestThrotttle(data):
 	signalType, IP, sender = data.split('/')
 	if signalType == 'PANIC':
-		#request panic for ip
-		printToServer('Requesting starting throttling for: ' + IP)
+		# Request start for the IP
+		printToServer('Delegator '+getIpForThis()+' is requesting starting throttling for: ' + IP)
 		SendToThrottleManager('START'+'/'+IP)
 	elif signalType == 'STOP':
-		#request stop for ip
-		printToServer('Requesting stop throttle for: ' + IP)
+		# Request stop for the IP
+		printToServer('Requesting '+getIpForThis()+'stop throttle for: ' + IP)
 		SendToThrottleManager('STOP'+'/'+IP)
 
-#ONLY if the signal just came from a client, else do nothing
+# This function sends the recieved data, onwards onto the
+# other delegators, from 'DelegatorList'
+# A delegator only forwards a signal if it came directly a client.
+# Therefore the end of the data string is changed to indicate to other 
+# delegators that this message comes from another delegator, and not a client
 def sendToOtherDelegtors(data):
 	signalType, IP, sender = data.split('/')
 	if sender == 'CLIENT':
-		#We change the message, so that it says it comes from a delegator now
 		newData = signalType+'/'+IP+'/'+'DELEGATOR'
 		for delegator in DelegatorList:
 			if delegator != getIpForThis():		
@@ -65,17 +84,17 @@ def sendToOtherDelegtors(data):
 
 if __name__ == "__main__":
 	# Host a server, listening for client messages.
-	# When messages are heard, send to other delegator
-	# and request start or stop throttling
-	printToServer('Delegator: ' + getIpForThis() + ' started')
+	# When messages are heard, we send to other delegator(s)
+	# and request start- or stop-throttling from the ThrottleManager
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	serversocket.bind((getIpForThis(), 8008))
 	serversocket.listen(100)
+	printToServer('Delegator: ' + getIpForThis() + ' started...')
 	while True:
-		#Listen messages from client(s) or other delegators
 		connectionSocket, addr = serversocket.accept()
 		data = connectionSocket.recv(4096)
-		printToServer('Delegator at: ' + getIpForThis() + ' has recived signal from: ' + str(addr) + '&DATA&: ' + data)
+		
+		printToServer('Delegator at: ' + getIpForThis() + ' has recieved signal from: ' + str(addr) + ' DATA: ' + data)
 		
 		thread.start_new_thread(requestThrotttle, (data, ))
 		thread.start_new_thread(sendToOtherDelegtors, (data, ))
