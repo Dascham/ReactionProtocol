@@ -82,14 +82,31 @@ def wrapper(fn,collector):
   return result
 #--------------------SFLOW----------------------------
 
+def InitializeThrottleQueue(switchInterface, minBitsPerSecond=0, 
+	maxBitsPerSecond=10000000, queueSize=5000000):
+	os.system("sudo ovs-vsctl -- set Port "+str(switchInterface)+" qos=@newqos -- \
+--id=@newqos create QoS type=linux-htb other-config:max-rate="+str(maxBitsPerSecond)+" queues=0=@q0,1=@q1 -- \
+--id=@q0 create Queue other-config:min-rate="+str(minBitsPerSecond)+" other-config:max-rate="+str(maxBitsPerSecond)+" -- \
+--id=@q1 create Queue other-config:min-rate="+str(queueSize)+" other-config:max-rate="+str(queueSize))
+
+
+	#os.system("sudo ovs-vsctl -- set Port {0} qos=@newqos -- "
+	#	"--id=@newqos create QoS type=linux-htb other-config:maxrate={2} queues={3}=@q{3} -- "
+	#	"--id=@q{3} create Queue other-config:min-rate={1} other-config:max-rate={2}"
+	#	.format(switchInterface, minBitsPerSecond, maxBitsPerSecond, queue_id))
+
+
+os.system("sudo ovs-vsctl emer-reset")
+
 net = Mininet(switch = OVSSwitch, autoSetMacs=True)
 
-#setattr(Mininet, 'start', wrapper(Mininet.__dict__['start'], collector))
+setattr(Mininet, 'start', wrapper(Mininet.__dict__['start'], collector))
 
 poxcontroller = net.addController(name="pox",
 				controller=RemoteController, 
 				ip="127.0.0.1", protocol="tcp", 
 				port=6633) 
+
 
 #add hosts
 client = net.addHost('h1')		#10.0.0.1
@@ -104,6 +121,8 @@ s1 = net.addSwitch('s1')
 s2 = net.addSwitch('s2')
 s3 = net.addSwitch('s3')
 
+SwitchList = [s1, s2, s3]
+
 net.addLink(client, s1)
 net.addLink(del1, s1)
 net.addLink(del2, s3)
@@ -116,6 +135,18 @@ net.addLink(s2, s3)
 net.build()
 net.addNAT().configDefault()
 net.start()
+
+print "Adding queues for switches..."
+
+for switch in SwitchList:
+	interfaces = switch.intfNames()
+	for i in range(1, len(interfaces)):
+		InitializeThrottleQueue(interfaces[i])
+	#print queues that have just been created
+	os.system("sudo ovs-ofctl -O openflow10 queue-stats %s"%(switch.name))
+
+print "Added queues for switches!"
+
 net.pingAll()
 
 #Start delegator program on the two delegators

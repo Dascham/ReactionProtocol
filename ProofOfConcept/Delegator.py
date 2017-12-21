@@ -8,6 +8,9 @@ import struct
 printerIP = '192.168.2.4'
 printerPORT = 8888
 
+throttleManagerIP = '192.168.2.4'
+throttleManagerPORT = 7777
+
 DelegatorList = ['10.0.0.3', '10.0.0.4']
 
 def getIpForThis():
@@ -22,18 +25,29 @@ def printToServer(string):
 		printer.send(string)
 		printer.close()
 	except Exception as e:
-		print 'Could not send panic! ' + e
+		print 'Could not send panic! ' + str(e)
+
+def SendToThrottleManager(string):
+	try:
+		throttleManager = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		throttleManager.connect((throttleManagerIP, throttleManagerPORT))
+		throttleManager.send(string)
+		throttleManager.close()
+	except Exception as e:
+		print 'Could not send panic! ' + str(e)
 
 def requestThrotttle(data):
 	signalType, IP, sender = data.split('/')
 	if signalType == 'PANIC':
 		#request panic for ip
 		printToServer('Requesting starting throttling for: ' + IP)
+		SendToThrottleManager('START'+'/'+IP)
 	elif signalType == 'STOP':
 		#request stop for ip
 		printToServer('Requesting stop throttle for: ' + IP)
+		SendToThrottleManager('STOP'+'/'+IP)
 
-#ONLY if the signal just came from a client
+#ONLY if the signal just came from a client, else do nothing
 def sendToOtherDelegtors(data):
 	signalType, IP, sender = data.split('/')
 	if sender == 'CLIENT':
