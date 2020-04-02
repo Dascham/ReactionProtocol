@@ -11,8 +11,8 @@ The accompanying project report is also prodvided here, as a PDF.
 Created as part of the 5th semester project, Comp. Sci, Aalborg University, during summer/fall of 2017.
 
 Group members:
-  * Ruben Mensink
-  * Palle Thillemann
+  * Emil Thougaard Petersen
   * Frederik Østerby Hansen
   * Joachim T. H. Nielsen
-  * Emil Thougaard Petersen
+  * Palle Thillemann
+  * Ruben Henrik Mensink
